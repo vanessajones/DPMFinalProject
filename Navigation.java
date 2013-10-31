@@ -19,7 +19,16 @@ public class Navigation {
 	private boolean lookingForObject;
 	private boolean isNavigating;
 	
-	public Navigation(Odometer odo, UltrasonicSensor us) {
+	private int leftWallBound;
+	private int rightWallBound;
+	private int topWallBound;
+	private int bottomWallBound;
+	private int[] forbiddenZoneX;
+	private int[] forbiddenZoneY;
+	
+	private int role;
+	
+	public Navigation(Odometer odo, UltrasonicSensor us, int startingLocation, int role) {
 		this.odometer = odo;
 		this.us = us;
 		
@@ -29,6 +38,8 @@ public class Navigation {
 		// set acceleration
 		this.leftMotor.setAcceleration(ACCELERATION);
 		this.rightMotor.setAcceleration(ACCELERATION);
+		
+		this.setBoundaries(startingLocation, role);
 	}
 	
 	public void setSpeeds(float lSpd, float rSpd) {
@@ -144,8 +155,66 @@ public class Navigation {
 	public void ScanForObject() {
 
 	}
+
+
+	public void setBoundaries(int startingLocation, int role) {
+		if(startingLocation == 1 | startingLocation == 3) {
+			leftWallBound = -25;
+			rightWallBound = 325;
+			topWallBound = 325;
+			bottomWallBound = -25;
+		}
+		else {
+			leftWallBound = -325;
+			rightWallBound = 25;
+			topWallBound = 325;
+			bottomWallBound = -25;
+		}
+		
+		if(startingLocation == 1) {
+			if(role == 1) {
+				forbiddenZoneX = new int[] { /*blah*/ };
+				forbiddenZoneY = new int[] { /*blah*/ };
+			}
+			else {
+				forbiddenZoneX = new int[] { /*blah*/};
+				forbiddenZoneY = new int[] { /*blah*/ };				
+			}
+		}
+		else if(startingLocation == 2) {
+			if(role == 1) {
+				forbiddenZoneX = new int[] { /*blah*/ };
+				forbiddenZoneY = new int[] { /*blah*/ };				
+			}
+			else {
+				forbiddenZoneX = new int[] { /*blah*/};
+				forbiddenZoneY = new int[] { /*blah*/ };				
+			}
+		}
+		else if(startingLocation == 3) {
+			if(role == 1) {
+				forbiddenZoneX = new int[] { /*blah*/ };
+				forbiddenZoneY = new int[] { /*blah*/ };					
+			}
+			else {
+				forbiddenZoneX = new int[] { /*blah*/ };
+				forbiddenZoneY = new int[] { /*blah*/ };				
+			}
+		}
+		else{
+			if(role == 1) {
+				forbiddenZoneX = new int[] { /*blah*/ };
+				forbiddenZoneY = new int[] { /*blah*/ };					
+			}
+			else {
+				forbiddenZoneX = new int[] { /*blah*/ };
+				forbiddenZoneY = new int[] { /*blah*/ };					
+			}
+		}
+	}
 	
-	/* returns whether or not the object pinged by the ultrasonic sensor is a wall or restricted zone*/
+	
+/*	
 	public boolean isBoundary() {
 	
 		double distance;
@@ -160,12 +229,13 @@ public class Navigation {
 		double y = odometer.getY() + distance*Math.sin(Math.toRadians(angle));
 		
 		// wall boundaries
-		if(x < -25 || x > 85 || y < -25 || y > 200) {
+		if(x < leftWallBound || x > rightWallBound || y < bottomWallBound || y > topWallBound) {
 			return true;
 		}
-			
+				
 		return false;
 	}
+*/
 	
 	/* called only when robot identifies a styrofoam block */
 	public void grabBlock() {
