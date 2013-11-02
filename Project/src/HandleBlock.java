@@ -56,7 +56,7 @@ public class HandleBlock {
 	/** Setter that sets the robot to handling block
 	 * 
 	 */
-	public void setHandling(){
+	public void setHandling(boolean handling){
 		
 	}
 }
