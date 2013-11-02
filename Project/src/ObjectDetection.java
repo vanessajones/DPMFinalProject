@@ -35,6 +35,7 @@ public class ObjectDetection {
 		distanceUS1 = getFilteredData(us1);
 		distanceUS2 = getFilteredData(us2);
 		
+		
 		if (distanceUS1 < BLOCK_DISTANCE && distanceUS2 > BLOCK_DISTANCE) {
 			return true;
 		}
