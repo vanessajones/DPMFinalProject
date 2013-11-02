@@ -25,7 +25,7 @@ public class USLocalizer {
 	/**
 	 * Class constructor
 	 * @param odo imports the Odometer
-	 * @param us imports the UltrasonicSensor
+	 * @param us imports one UltrasonicSensor
 	 */
 	public USLocalizer(Odometer odo, UltrasonicSensor us) {
 		this.odo = odo;
@@ -156,7 +156,7 @@ public class USLocalizer {
 		return this.LOCALIZING;
 	}
 	
-	/** method that converts the angle 
+	/** Converts an angle to a distance
 	 * 
 	 * @param radius
 	 * @param width
@@ -167,6 +167,12 @@ public class USLocalizer {
 		return convertDistance(radius, Math.PI * width * angle / 360.0);
 	}
 	
+	/** Convert the distance 
+	 * 
+	 * @param radius
+	 * @param vector_magnitude
+	 * @return
+	 */
 	private static int convertDistance(double radius, double vector_magnitude) {
 		return (int) (( vector_magnitude * 180.0) / (Math.PI * radius));
 	}
