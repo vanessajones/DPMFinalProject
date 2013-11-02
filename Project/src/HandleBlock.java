@@ -9,6 +9,7 @@ public class HandleBlock {
 
 	private final double CAPTURE_DEGREES = 100; // tentative value, must test it
 	private final double LIFT_DEGREES = 100; // tentative value, must test it
+	private boolean isManipulating; // boolean that determines if the block is currently being manipulated
 	private NXTRegulatedMotor lifting;
 
 	/** Constructor method
@@ -44,4 +45,18 @@ public class HandleBlock {
 	public void release() {
 	}
 	
+	/** Getter that determines if the robot is handling a block
+	 * 
+	 * @return determines if the robot is handling a block. Return true if the block is handling a block and false if its not.
+	 */
+	public boolean isHandling(){
+		return true;
+	}
+	
+	/** Setter that sets the robot to handling block
+	 * 
+	 */
+	public void setHandling(){
+		
+	}
 }
