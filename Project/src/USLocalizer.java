@@ -1,13 +1,12 @@
-/*
- * Group 3
- * Simon Lei 260469075
- * Muhammad Hannan Aslam 260449459
- */
-
 import lejos.nxt.*;
 
+/** This class performs localization with the Ultrasonic Sensor
+ * 
+ * @author Vanessa Jones, Christopher Petryna, Simon Lei, Taylor Dotsikas, Muhammad Hannan and Caroline Wu
+ * @version 1.0 November 2 2013
+ *  
+ */
 public class USLocalizer {
-	public static int ROTATION_SPEED = 80;
 
 	private Odometer odo;
 	private UltrasonicSensor us;
@@ -17,11 +16,17 @@ public class USLocalizer {
 	private int NOISE_MARGIN = 2;
 	private double ORI_ANGLE;
 	private boolean LOCALIZING;
-	
+
+	public static int ROTATION_SPEED = 80;
 	public static final double LEFT_RADIUS = 2.15;
 	public static final double RIGHT_RADIUS = 2.15;
 	public static final double WIDTH = 15.8;
 	
+	/**
+	 * Class constructor
+	 * @param odo imports the Odometer
+	 * @param us imports the UltrasonicSensor
+	 */
 	public USLocalizer(Odometer odo, UltrasonicSensor us) {
 		this.odo = odo;
 		this.us = us;
@@ -32,6 +37,9 @@ public class USLocalizer {
 		us.off();
 	}
 	
+	/** doLocalization method that makes the robot perform Rising Edge localization to correct its heading
+	 * and its position
+	 */
 	public void doLocalization() {
 		LOCALIZING = true;
 			
@@ -72,6 +80,12 @@ public class USLocalizer {
 		LOCALIZING = false;
 	}
 	
+	/** Method that detects the wall 
+	 * 
+	 * @param WALL_DIST wall filter
+	 * @param NOISE_MARGIN noise filter
+	 * @param LOOK_FOR_WALL boolean that determines if the robot must look for the wall
+	 */
 	public void detectWall (int WALL_DIST, int NOISE_MARGIN, boolean LOOK_FOR_WALL) {
 		while (Motor.A.isMoving()) {
 			if (LOOK_FOR_WALL == true) {
@@ -90,6 +104,10 @@ public class USLocalizer {
 		}
 	}
 	
+	/** rotateTillStopped method that makes the robot rotate 
+	 * @param CLOCKWISE determines if the robot turns clockwise or counterclockwise
+	 * 
+	 */
 	public void rotateTillStopped (boolean CLOCKWISE) {
 		if (CLOCKWISE == true) {
 			Motor.A.rotate(convertAngle(LEFT_RADIUS, WIDTH, 360), true);
@@ -101,6 +119,9 @@ public class USLocalizer {
 		}
 	}
 	
+	/** Method that implements a filter for the data from the Ultrasonic Sensor
+	 * @return distance filtered distance read from the ultrasonic sensor
+	 */
 	private int getFilteredData() {
 		int distance;
 		
@@ -118,16 +139,30 @@ public class USLocalizer {
 		return distance;
 	}
 	
-	// get and set methods for if the robot is localizing
+	/** setter method to set the robot as localizing or not
+	 * 
+	 * @param isLocalizing boolean that indicates the status of localization. True if the robot is
+	 * still localizing and false is the robot is not localizing
+	 */
 	public void setIsLocalizing (boolean isLocalizing) {
 		this.LOCALIZING = isLocalizing;
 	}
 	
+	/** getter method that returns the status of the robot's localization
+	 * @return status of the robot's localization, true if the robot is localizing and 
+	 * false is the robot is not localizing
+	 */
 	public boolean getIsLocalizing () {
 		return this.LOCALIZING;
 	}
 	
-	// Useful conversion methods taken from Lab2 SquareDriver.java file
+	/** method that converts the angle 
+	 * 
+	 * @param radius
+	 * @param width
+	 * @param angle
+	 * @return
+	 */
 	private static int convertAngle(double radius, double width, double angle) {
 		return convertDistance(radius, Math.PI * width * angle / 360.0);
 	}
