@@ -1,8 +1,3 @@
-/**
- * Team 1
- * 
- */
-
 import lejos.util.Timer;
 import lejos.util.TimerListener;
 import lejos.nxt.NXTRegulatedMotor;
