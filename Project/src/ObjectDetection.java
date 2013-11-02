@@ -14,8 +14,8 @@ public class ObjectDetection {
 	
 	/** Constructor method to import the two ultrasonic sensors
 	 * 
-	 * @param us1 import the ultrasonic sensor located on the top of the robot
-	 * @param us2 import the ultrasonic sensor located at the bottom of the robot
+	 * @param us1 import the ultrasonic sensor located on the bottom of the robot
+	 * @param us2 import the ultrasonic sensor located at the top of the robot
 	 */
 	public ObjectDetection(UltrasonicSensor us1, UltrasonicSensor us2){
 		

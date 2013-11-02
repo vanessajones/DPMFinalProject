@@ -10,8 +10,8 @@ public class USLocalizer {
 
 	private Odometer odo;
 	private UltrasonicSensor us;
-	double angleA, angleB;
 	
+	public double angleA, angleB;
 	private int WALL_DIST = 40;
 	private int NOISE_MARGIN = 2;
 	private double ORI_ANGLE;
