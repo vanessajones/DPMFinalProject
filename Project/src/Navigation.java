@@ -17,6 +17,9 @@ public class Navigation {
 	
 	private Odometer odometer;
 	private NXTRegulatedMotor leftMotor, rightMotor;
+	private Bluetooth bt;
+	private LightLocalizer ls;
+	private ObjectDetection od;
 	
 	private final double RADIUS = 2.18;
 	private final double WIDTH = 15.8;
@@ -37,13 +40,17 @@ public class Navigation {
 	
 	/** Class constructor
 	 * 
-	 * @param odo imports odometer 
-	 * @param bt imports bluetooth
+	 * @param odo imports Odometer 
+	 * @param bt imports Bluetooth
+	 * @param ls imports LightLocalizer
+	 * @param od imports ObjectDetection
 	 */
 	
-	public Navigation(Odometer odo, Bluetooth bt) {
+	public Navigation(Odometer odo, Bluetooth bt, LightLocalizer ls, ObjectDetection od) {
 		this.odometer = odo;
-		this.us = us;
+		this.bt = bt;
+		this.ls = ls;
+		this.od = od;
 		
 		this.leftMotor = Motor.A;
 		this.rightMotor = Motor.B;
