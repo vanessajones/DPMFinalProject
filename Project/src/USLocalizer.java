@@ -77,6 +77,21 @@ public class USLocalizer {
 		Motor.B.rotate(-convertAngle(RIGHT_RADIUS, WIDTH, (90 + (360 - odo.getAng()) % 360)), false);				
 		Motor.A.stop();
 		Motor.B.stop();
+		
+	/* 	
+		// update the odometer's position according to the starting position
+		
+		if (startingPosition == X2){
+			odo.setPosition(new double [] {304.8, 0, 270}, new boolean [] {true, false, true});
+		}
+		
+		else if (startingPosition == X3){
+			odo.setPosition(new double [] {304.8, 304.8, 180 }, new boolean [] {true, true, true});
+			}
+		
+		else if (startingPosition == X4){
+			odo.setPosition(new double [] {0, 304.8, 90}, new boolean [] {false, true, true});
+	*/
 		LOCALIZING = false;
 	}
 	
@@ -156,22 +171,22 @@ public class USLocalizer {
 		return this.LOCALIZING;
 	}
 	
-	/** Converts an angle to a distance
+	/** Interprets how much the wheel motors should rotate to turn the robot a certain angle based on the robot's specifications.
 	 * 
-	 * @param radius
-	 * @param width
-	 * @param angle
-	 * @return
+	 * @param radius the radius of the wheels.
+	 * @param width the width between the two wheels.
+	 * @param angle the desired angle.
+	 * @return the angle to rotate the motors by
 	 */
 	private static int convertAngle(double radius, double width, double angle) {
 		return convertDistance(radius, Math.PI * width * angle / 360.0);
 	}
 	
-	/** Convert the distance 
+	/** Interprets how much the wheel motors should rotate to move the robot a certain distance based on the robot's specifications.
 	 * 
-	 * @param radius
-	 * @param vector_magnitude
-	 * @return
+	 * @param radius the radius of the wheels.
+	 * @param vector_magnitude the desired travel distance.
+	 * @return the angle to rotate the motors by.
 	 */
 	private static int convertDistance(double radius, double vector_magnitude) {
 		return (int) (( vector_magnitude * 180.0) / (Math.PI * radius));
