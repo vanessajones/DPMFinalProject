@@ -177,7 +177,7 @@ public class Navigation {
 		return 0;
 	}
 	
-	/** Method which tells the robot to robot a angle, if boolean wait is false, the method will return immediately.
+	/** Method which tells the robot to rotate a certain angle, if boolean wait is false, the method will return immediately.
 	 *  @param angle the angle the robot will rotate by.
 	 *  @param wait if false, method will return immediately.
 	 *  */
