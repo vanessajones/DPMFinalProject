@@ -3,32 +3,45 @@ import lejos.nxt.Motor;
 import lejos.nxt.NXTRegulatedMotor;
 import lejos.nxt.UltrasonicSensor;
 import lejos.nxt.TouchSensor;
+import lejos.nxt.comm.Bluetooth;
+
+/** Class that houses the commands related to navigation.
+ * 
+ * @author Vanessa Jones, Christopher Petryna, Simon Lei, Taylor Dotsikas, Muhammad Hannan and Caroline Wu
+ * @version  1.0 November 2 2013
+ */
 
 public class Navigation {
 	final static int FAST = 200, SLOW = 140, ACCELERATION = 4000;
 	final static double DEG_ERR = 3.0, CM_ERR = 1.0;
 	
 	private Odometer odometer;
-	private UltrasonicSensor us;
 	private NXTRegulatedMotor leftMotor, rightMotor;
 	
-	private final double RADIUS = 2.15;
+	private final double RADIUS = 2.18;
 	private final double WIDTH = 15.8;
 
 	
-	private boolean lookingForObject;
-	private boolean isNavigating;
+	private boolean hasBlock = false;
+	private boolean foundObject = false;
 	
-	private int leftWallBound;
-	private int rightWallBound;
-	private int topWallBound;
-	private int bottomWallBound;
+	private final int leftWallBound = -25;
+	private final int rightWallBound = 325;
+	private final int topWallBound = 325;
+	private final int bottomWallBound = -25;
 	private int[] forbiddenZoneX;
 	private int[] forbiddenZoneY;
 	
 	private int role;
+	private int startingLocation;
 	
-	public Navigation(Odometer odo, UltrasonicSensor us, int startingLocation, int role) {
+	/** Class constructor
+	 * 
+	 * @param odo imports odometer 
+	 * @param bt imports bluetooth
+	 */
+	
+	public Navigation(Odometer odo, Bluetooth bt) {
 		this.odometer = odo;
 		this.us = us;
 		
@@ -39,8 +52,17 @@ public class Navigation {
 		this.leftMotor.setAcceleration(ACCELERATION);
 		this.rightMotor.setAcceleration(ACCELERATION);
 		
-		this.setBoundaries(startingLocation, role);
+		role = bt.getRole();
+		startingLocation = bt.getStartingLocation();
+		forbiddenZoneX = bt.getForbiddenZoneX;
+		forbiddenZoneY = bt.getForbiddenZoneY;
 	}
+	
+	/** Sets the travel speed of the robot
+	 * 
+	 * @param lSpd left motor speed
+	 * @param rSpd right motor speed
+	 */
 	
 	public void setSpeeds(float lSpd, float rSpd) {
 		this.leftMotor.setSpeed(lSpd);
@@ -54,6 +76,12 @@ public class Navigation {
 		else
 			this.rightMotor.forward();
 	}
+	
+	/** Sets the travel speed of the robot
+	 * 
+	 * @param lSpd left motor speed
+	 * @param rSpd right motor speed
+	 */
 
 	public void setSpeeds(int lSpd, int rSpd) {
 		this.leftMotor.setSpeed(lSpd);
@@ -68,8 +96,8 @@ public class Navigation {
 			this.rightMotor.forward();
 	}
 
-	/*
-	 * Float the two motors jointly
+	/** Float the two motors jointly
+	 * 
 	 */
 	public void setFloat() {
 		this.leftMotor.stop();
@@ -77,13 +105,22 @@ public class Navigation {
 		this.leftMotor.flt(true);
 		this.rightMotor.flt(true);
 	}
-
-	/*
+	
+	/** Method to decide where the robot should travel
+	 * 
+	 * @param hasBlock the robot's path will tend towards the drop zone if true.
+	 */
+	public void choseTravelPath(boolean hasBlock) {
+		
+	}
+	
+	/**
 	 * TravelTo function which takes as arguments the x and y position in cm. Will travel to designated position, while
 	 * constantly updating it's heading
+	 * @param x x-coordinate of travel destination
+	 * @param y y-coordinate fo travel destination
 	 */
 	public void travelTo(double x, double y) {
-		isNavigating = true;
 		double minAng;
 		while (Math.abs(x - odometer.getX()) > CM_ERR || Math.abs(y - odometer.getY()) > CM_ERR) {	
 			minAng = (Math.atan2(y - odometer.getY(), x - odometer.getX())) * (180.0 / Math.PI);
@@ -93,12 +130,12 @@ public class Navigation {
 			this.setSpeeds(SLOW, SLOW);
 		}
 		this.setSpeeds(0, 0);
-		isNavigating = false;
 	}
 
-	/*
-	 * TurnTo function which takes an angle and boolean as arguments The boolean controls whether or not to stop the
-	 * motors when the turn is completed
+	/**
+	 * Tells robot to rotate to a specific angle.
+	 * @param angle the angle the robot will rotate to.
+	 * @param stop controls whether or not to stop the motors when the turn is completed.
 	 */
 	public void turnTo(double angle, boolean stop) {
 
@@ -124,8 +161,10 @@ public class Navigation {
 		}
 	}
 
-	/* method which tells the robot to travel a certain distance, if boolean wait is false, the method
-	   will return immediately */
+	/** Method which tells the robot to travel a certain distance, if boolean wait is false, the method will return immediately.
+	 * @param dist the distance the robot will travel by.
+	 * @param wait if false, method will return immediately.
+	 */
 	public int travelBy(double dist, boolean wait) {
 		if(wait) {
 			leftMotor.rotate(convertDistance(RADIUS, dist), true);
@@ -138,8 +177,10 @@ public class Navigation {
 		return 0;
 	}
 	
-	/* method which tells the robot to robot a angle, if boolean wait is false, the method
-	   will return immediately */
+	/** Method which tells the robot to robot a angle, if boolean wait is false, the method will return immediately.
+	 *  @param angle the angle the robot will rotate by.
+	 *  @param wait if false, method will return immediately.
+	 *  */
 	public int rotateBy(double angle, boolean wait) {
 		if(wait) {
 			leftMotor.rotate(convertAngle(RADIUS, WIDTH, angle), true);
@@ -152,131 +193,53 @@ public class Navigation {
 		return 0;
 	}
 	
-	public void ScanForObject() {
-
-	}
-
-
-	public void setBoundaries(int startingLocation, int role) {
-		if(startingLocation == 1 | startingLocation == 3) {
-			leftWallBound = -25;
-			rightWallBound = 325;
-			topWallBound = 325;
-			bottomWallBound = -25;
-		}
-		else {
-			leftWallBound = -325;
-			rightWallBound = 25;
-			topWallBound = 325;
-			bottomWallBound = -25;
-		}
-		
-		if(startingLocation == 1) {
-			if(role == 1) {
-				forbiddenZoneX = new int[] { /*blah*/ };
-				forbiddenZoneY = new int[] { /*blah*/ };
-			}
-			else {
-				forbiddenZoneX = new int[] { /*blah*/};
-				forbiddenZoneY = new int[] { /*blah*/ };				
-			}
-		}
-		else if(startingLocation == 2) {
-			if(role == 1) {
-				forbiddenZoneX = new int[] { /*blah*/ };
-				forbiddenZoneY = new int[] { /*blah*/ };				
-			}
-			else {
-				forbiddenZoneX = new int[] { /*blah*/};
-				forbiddenZoneY = new int[] { /*blah*/ };				
-			}
-		}
-		else if(startingLocation == 3) {
-			if(role == 1) {
-				forbiddenZoneX = new int[] { /*blah*/ };
-				forbiddenZoneY = new int[] { /*blah*/ };					
-			}
-			else {
-				forbiddenZoneX = new int[] { /*blah*/ };
-				forbiddenZoneY = new int[] { /*blah*/ };				
-			}
-		}
-		else{
-			if(role == 1) {
-				forbiddenZoneX = new int[] { /*blah*/ };
-				forbiddenZoneY = new int[] { /*blah*/ };					
-			}
-			else {
-				forbiddenZoneX = new int[] { /*blah*/ };
-				forbiddenZoneY = new int[] { /*blah*/ };					
-			}
-		}
-	}
+	/**
+	 * Determines if travel path will collide with a wall or forbidden zone.
+	 * @param destX x-coordinate of travel path.
+	 * @param destY y-coordinate of travel path.
+	 * @return true if travel path is bad, false if its good.
+	 */
+	public boolean isBoundary(int destX, int destY) {
 	
-	
-/*	
-	public boolean isBoundary() {
-	
-		double distance;
-			
-		us.ping();
-		// wait for ping to finish
-		try { Thread.sleep(25); } catch (InterruptedException e) {}
-		distance = getFilteredData();
-			
-		double angle = odometer.getAng();
-		double x = odometer.getX() + distance*Math.cos(Math.toRadians(angle));
-		double y = odometer.getY() + distance*Math.sin(Math.toRadians(angle));
-		
 		// wall boundaries
-		if(x < leftWallBound || x > rightWallBound || y < bottomWallBound || y > topWallBound) {
+		if(destX < leftWallBound || destX > rightWallBound || destY < bottomWallBound || destY > topWallBound) {
 			return true;
+		}
+		
+		for(int i = 0; i < forbiddenZoneX.length; i++) {
+			if(forbiddenZoneX[i] == destX && forbiddenZoneY[i] == destY) {
+				return true;
+			}
 		}
 				
 		return false;
 	}
-*/
 	
-	/* called only when robot identifies a styrofoam block */
-	public void grabBlock() {
-
-	}
-	
+	/** A get method for if the robot's found a blue block.
+	 * @return true if it's found a blue block, false otherwise.
+	 */
 	public boolean foundObject() {
-		return this.foundObject();
+		return this.foundObject;
 	}
 	
-	public boolean lookingForObject() {
-		return this.lookingForObject;
-	}
 	
-	public boolean isNavigating() {
-		return this.isNavigating;
-	}
-	
-	private int getFilteredData() {
-		int distance;
-		
-		// do a ping
-		us.ping();
-		
-		// wait for the ping to complete
-		try { Thread.sleep(50); } catch (InterruptedException e) {}
-		
-		// there will be a delay here
-		distance = us.getDistance();
-
-		if (distance > 80)
-			distance = 80;
-		
-		return distance;
-
-	}
-	
-	// Useful conversion methods taken from Lab2 SquareDriver.java file
+	/** Interprets how much the wheel motors should rotate to turn the robot a certain angle based on the robot's specifications.
+	 * 
+	 * @param radius the radius of the wheels.
+	 * @param width the width between the two wheels.
+	 * @param angle the desired angle.
+	 * @return the angle to rotate the motors by
+	 */
 	private static int convertAngle(double radius, double width, double angle) {
 		return convertDistance(radius, Math.PI * width * angle / 360.0);
 	}
+	
+	/** Interprets how much the wheel motors should rotate to move the robot a certain distance based on the robot's specifications.
+	 * 
+	 * @param radius the radius of the wheels.
+	 * @param vector_magnitude the desired travel distance.
+	 * @return the angle to rotate the motors by.
+	 */
 	private static int convertDistance(double radius, double vector_magnitude) {
 		return (int) (( vector_magnitude * 180.0) / (Math.PI * radius));
 	}
