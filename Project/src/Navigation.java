@@ -23,6 +23,7 @@ public class Navigation {
 	
 	private final double RADIUS = 2.18;
 	private final double WIDTH = 15.8;
+	private final double TILELENGTH = 30;
 	
 	private boolean hasBlock = false;
 	private boolean foundBlock = false;
@@ -129,9 +130,10 @@ public class Navigation {
 				 */
 				pickSafeRoute();
 				traverseATile();
+				justWentStraight = false;
 			}
 			else {
-				turnForward();
+				turnLeft();
 				/*if ObjectDetection found a block as robot was rotating, 
 				 * 	  foundBlock = true;
 				 *    call goGrabBlock
@@ -139,30 +141,83 @@ public class Navigation {
 				 */
 				pickSafeRoute();
 				traverseATile();
+				justWentStraight = true;
 			}
 		}
 	}
 	
 	public void pickSafeRoute() {
-	/*
-	 * boolean notSafe = true;
-	 * while(notSafe)
-		ask ObjectDetection if there's an obstacle in the way
-		if not, call isBoundary and store in variable 'order'
-			if(order == 0)
-				notSafe = false;
-			else if(order == 1)
-				call turnForward or turnRight depending on boolean justWentStraight
-			else
-				call rotateBy(180,false)
-		else call turnForward or turnRight depending on boolean justWentStraight
-	*/
+		boolean notSafe = true;
+		int errorMargin = 5;
+		int order;
+		int destX, destY;
+		while(notSafe) {
+			
+			if(getRobotDirection().equals("east")) {
+				destX = (int) ((((odometer.getX() + errorMargin) % TILELENGTH) + 1)*TILELENGTH);
+				destY = (int) (((odometer.getY() + errorMargin) % TILELENGTH)*TILELENGTH);
+			}
+			else if(getRobotDirection().equals("north")) {
+				destX = (int) (((odometer.getX() + errorMargin) % TILELENGTH)*TILELENGTH);
+				destY = (int) ((((odometer.getY() + errorMargin) % TILELENGTH) + 1)*TILELENGTH);
+			}	
+			else if(getRobotDirection().equals("west")) {
+				destX = (int) ((((odometer.getX() + errorMargin) % TILELENGTH) - 1)*TILELENGTH);
+				destY = (int) (((odometer.getY() + errorMargin) % TILELENGTH)*TILELENGTH);
+			}			
+			
+			else if(getRobotDirection().equals("south")) {
+				destX = (int) (((odometer.getX() + errorMargin) % TILELENGTH)*TILELENGTH);
+				destY = (int) ((((odometer.getY() + errorMargin) % TILELENGTH) - 1)*TILELENGTH);
+			}		
+			
+		/* if(ObjectDetection doesn't see an obstacle in the way) {
+		 *    order = isBoundary(destX,destY);
+		 *    if(order == 0) {
+		 *       notSafe = false;
+		 *    }
+		 *    else if(order == 1) {
+		 *       if(justWentStraight) {
+		 *          turnLeft();
+		 *       }
+		 *       else {
+		 *          turnRight();
+		 *       }
+		 *    else {
+		 *       rotateBy(180,false);
+		 *    }
+		 * else {
+		 *    if(justWentStraight) {
+		 *       turnLeft();
+		 *    }
+		 *    else {
+		 *       turnRight();
+		 *    }
+		 * }
+		*/
+
+		}
+	}
+	
+	public String getRobotDirection () {
+		if(odometer.getAng() < 45 && odometer.getAng() > 315) {
+			return "east";
+		}
+		else if(odometer.getAng() < 135 && odometer.getAng() > 45) {
+			return "north";
+		}
+		else if(odometer.getAng() < 225 && odometer.getAng() > 135) {
+			return "west";
+		}
+		else {
+			return "south";
+		}
 	}
 	
 	public void traverseATile() {
 	// cover most of the tile quickly, then slow down for light localizer
 		setSpeeds(FAST,FAST);
-		travelBy(25,false);
+		travelBy((TILELENGTH - 5),false);
 		setSpeeds(SLOW,SLOW);
 		/*
 		ping lightsensors until one of the sensors finds a blackline, cut the motors and call 
@@ -175,6 +230,10 @@ public class Navigation {
 	}
 	
 	public void goGrabBlock() {
+		
+	}
+	
+	public void howToApproachDropZone() {
 		
 	}
 	
@@ -265,7 +324,7 @@ public class Navigation {
 		rotateBy(90,false);
 	}
 	
-	public void turnForward() {
+	public void turnLeft() {
 		rotateBy(-90,false);
 	}
 	
