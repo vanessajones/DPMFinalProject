@@ -18,8 +18,8 @@ public class Navigation {
 	private Odometer odometer;
 	private NXTRegulatedMotor leftMotor, rightMotor;
 	private Bluetooth bt;
-	private LightLocalizer ls;
-	private ObjectDetection od;
+	private LightLocalizer liLocalizer;
+	private ObjectDetection objDetection;
 	
 	private final double RADIUS = 2.18;
 	private final double WIDTH = 15.8;
@@ -49,8 +49,8 @@ public class Navigation {
 	public Navigation(Odometer odo, Bluetooth bt, LightLocalizer ls, ObjectDetection od) {
 		this.odometer = odo;
 		this.bt = bt;
-		this.ls = ls;
-		this.od = od;
+		this.liLocalizer = ls;
+		this.objDetection = od;
 		
 		this.leftMotor = Motor.A;
 		this.rightMotor = Motor.B;
@@ -206,20 +206,20 @@ public class Navigation {
 	 * @param destY y-coordinate of travel path.
 	 * @return true if travel path is bad, false if its good.
 	 */
-	public boolean isBoundary(int destX, int destY) {
+	public int isBoundary(int destX, int destY) {
 	
 		// wall boundaries
 		if(destX < leftWallBound || destX > rightWallBound || destY < bottomWallBound || destY > topWallBound) {
-			return true;
+			return 1;
 		}
 		
 		for(int i = 0; i < forbiddenZoneX.length; i++) {
 			if(forbiddenZoneX[i] == destX && forbiddenZoneY[i] == destY) {
-				return true;
+				return 2;
 			}
 		}
 				
-		return false;
+		return 0;
 	}
 	
 	/** A get method for if the robot's found a blue block.
