@@ -23,17 +23,17 @@ public class Navigation {
 	
 	private final double RADIUS = 2.18;
 	private final double WIDTH = 15.8;
-
 	
 	private boolean hasBlock = false;
-	private boolean foundObject = false;
+	private boolean foundBlock = false;
+	private boolean justWentStraight = false;
 	
 	private final int leftWallBound = -25;
 	private final int rightWallBound = 325;
 	private final int topWallBound = 325;
 	private final int bottomWallBound = -25;
-	private int[] forbiddenZoneX;
-	private int[] forbiddenZoneY;
+	private int[] restrictedAreaX;
+	private int[] restrictedAreaY;
 	
 	private int role;
 	private int startingLocation;
@@ -58,12 +58,14 @@ public class Navigation {
 		// set acceleration
 		this.leftMotor.setAcceleration(ACCELERATION);
 		this.rightMotor.setAcceleration(ACCELERATION);
-		
+/*		
 		role = bt.getRole();
 		startingLocation = bt.getStartingLocation();
-		forbiddenZoneX = bt.getForbiddenZoneX;
-		forbiddenZoneY = bt.getForbiddenZoneY;
+		restrictedAreaX = bt.getrestrictedAreaX;
+		restrictedAreaY = bt.getrestrictedAreaY;
+*/
 	}
+	
 	
 	/** Sets the travel speed of the robot
 	 * 
@@ -113,11 +115,70 @@ public class Navigation {
 		this.rightMotor.flt(true);
 	}
 	
-	/** Method to decide where the robot should travel
+	/** Method that tells the robot to travel in search for blue blocks
 	 * 
-	 * @param hasBlock the robot's path will tend towards the drop zone if true.
 	 */
-	public void choseTravelPath(boolean hasBlock) {
+	public void goFindBlock() {
+		while(!foundBlock) {
+			if(justWentStraight) {
+				turnRight();
+				/*if ObjectDetection found a block as robot was rotating, 
+				 * 	  foundBlock = true;
+				 *    call goGrabBlock
+				 *    break
+				 */
+				pickSafeRoute();
+				traverseATile();
+			}
+			else {
+				turnForward();
+				/*if ObjectDetection found a block as robot was rotating, 
+				 * 	  foundBlock = true;
+				 *    call goGrabBlock
+				 *    break
+				 */
+				pickSafeRoute();
+				traverseATile();
+			}
+		}
+	}
+	
+	public void pickSafeRoute() {
+	/*
+	 * boolean notSafe = true;
+	 * while(notSafe)
+		ask ObjectDetection if there's an obstacle in the way
+		if not, call isBoundary and store in variable 'order'
+			if(order == 0)
+				notSafe = false;
+			else if(order == 1)
+				call turnForward or turnRight depending on boolean justWentStraight
+			else
+				call rotateBy(180,false)
+		else call turnForward or turnRight depending on boolean justWentStraight
+	*/
+	}
+	
+	public void traverseATile() {
+	// cover most of the tile quickly, then slow down for light localizer
+		setSpeeds(FAST,FAST);
+		travelBy(25,false);
+		setSpeeds(SLOW,SLOW);
+		/*
+		ping lightsensors until one of the sensors finds a blackline, cut the motors and call 
+		localizer method.
+		After localizing, ping a short distance in front for a blue block,
+		if found,
+			foundBlock = true
+			call goGrabBlock
+		 */
+	}
+	
+	public void goGrabBlock() {
+		
+	}
+	
+	public void bringToDropZone() {
 		
 	}
 	
@@ -200,6 +261,14 @@ public class Navigation {
 		return 0;
 	}
 	
+	public void turnRight() {
+		rotateBy(90,false);
+	}
+	
+	public void turnForward() {
+		rotateBy(-90,false);
+	}
+	
 	/**
 	 * Determines if travel path will collide with a wall or forbidden zone.
 	 * @param destX x-coordinate of travel path.
@@ -213,8 +282,8 @@ public class Navigation {
 			return 1;
 		}
 		
-		for(int i = 0; i < forbiddenZoneX.length; i++) {
-			if(forbiddenZoneX[i] == destX && forbiddenZoneY[i] == destY) {
+		for(int i = 0; i < restrictedAreaX.length; i++) {
+			if(restrictedAreaX[i] == destX && restrictedAreaY[i] == destY) {
 				return 2;
 			}
 		}
@@ -222,11 +291,11 @@ public class Navigation {
 		return 0;
 	}
 	
-	/** A get method for if the robot's found a blue block.
+	/** A set method for if the robot's found a blue block. Called by the ObjectDetection class
 	 * @return true if it's found a blue block, false otherwise.
 	 */
-	public boolean foundObject() {
-		return this.foundObject;
+	public void setfoundBlock(boolean found) {
+		this.foundBlock = found;
 	}
 	
 	
