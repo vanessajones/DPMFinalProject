@@ -4,6 +4,7 @@ import lejos.nxt.NXTRegulatedMotor;
 import lejos.nxt.UltrasonicSensor;
 import lejos.nxt.TouchSensor;
 import lejos.nxt.comm.Bluetooth;
+import java.lang.Math;
 
 /** Class that houses the commands related to navigation.
  * 
@@ -24,6 +25,7 @@ public class Navigation {
 	private final double RADIUS = 2.18;
 	private final double WIDTH = 15.8;
 	private final double TILELENGTH = 30;
+	private final int ERRORMARGIN = 5;
 	
 	private boolean hasBlock = false;
 	private boolean foundBlock = false;
@@ -35,10 +37,19 @@ public class Navigation {
 	private final int bottomWallBound = -25;
 	private int[] restrictedAreaX;
 	private int[] restrictedAreaY;
+	private int[] dropzoneX;
+	private int[] dropzoneY;
+	
+	private int closestDropZonePtX;
+	private int closestDropZonePtY;
+	private int numOfHorizontalMoves;
+	private int numOfVerticalMoves;
+	private int destX;
+	private int destY;
 	
 	private int role;
 	private int startingLocation;
-	
+		
 	/** Class constructor
 	 * 
 	 * @param odo imports Odometer 
@@ -64,6 +75,8 @@ public class Navigation {
 		startingLocation = bt.getStartingLocation();
 		restrictedAreaX = bt.getrestrictedAreaX;
 		restrictedAreaY = bt.getrestrictedAreaY;
+		dropzoneX = bt.getdropzone;
+		dropzoneY = bt.getdropzone;
 */
 	}
 	
@@ -146,31 +159,16 @@ public class Navigation {
 		}
 	}
 	
+	/**
+	 * Looks for a line intersection that isn't blocked or out of bounds.
+	 */
 	public void pickSafeRoute() {
 		boolean notSafe = true;
-		int errorMargin = 5;
 		int order;
-		int destX, destY;
+
 		while(notSafe) {
-			
-			if(getRobotDirection().equals("east")) {
-				destX = (int) ((((odometer.getX() + errorMargin) % TILELENGTH) + 1)*TILELENGTH);
-				destY = (int) (((odometer.getY() + errorMargin) % TILELENGTH)*TILELENGTH);
-			}
-			else if(getRobotDirection().equals("north")) {
-				destX = (int) (((odometer.getX() + errorMargin) % TILELENGTH)*TILELENGTH);
-				destY = (int) ((((odometer.getY() + errorMargin) % TILELENGTH) + 1)*TILELENGTH);
-			}	
-			else if(getRobotDirection().equals("west")) {
-				destX = (int) ((((odometer.getX() + errorMargin) % TILELENGTH) - 1)*TILELENGTH);
-				destY = (int) (((odometer.getY() + errorMargin) % TILELENGTH)*TILELENGTH);
-			}			
-			
-			else if(getRobotDirection().equals("south")) {
-				destX = (int) (((odometer.getX() + errorMargin) % TILELENGTH)*TILELENGTH);
-				destY = (int) ((((odometer.getY() + errorMargin) % TILELENGTH) - 1)*TILELENGTH);
-			}		
-			
+			getNextLineIntersection();
+	
 		/* if(ObjectDetection doesn't see an obstacle in the way) {
 		 *    order = isBoundary(destX,destY);
 		 *    if(order == 0) {
@@ -199,6 +197,33 @@ public class Navigation {
 		}
 	}
 	
+	/**
+	 * Stores the coordinates of the nearest line intersection in the robot's heading.
+	 */
+	public void getNextLineIntersection() {
+		if(getRobotDirection().equals("east")) {
+			destX = (int) ((((odometer.getX() + ERRORMARGIN) % TILELENGTH) + 1)*TILELENGTH);
+			destY = (int) (((odometer.getY() + ERRORMARGIN) % TILELENGTH)*TILELENGTH);
+		}
+		else if(getRobotDirection().equals("north")) {
+			destX = (int) (((odometer.getX() + ERRORMARGIN) % TILELENGTH)*TILELENGTH);
+			destY = (int) ((((odometer.getY() + ERRORMARGIN) % TILELENGTH) + 1)*TILELENGTH);
+		}	
+		else if(getRobotDirection().equals("west")) {
+			destX = (int) ((((odometer.getX() + ERRORMARGIN) % TILELENGTH) - 1)*TILELENGTH);
+			destY = (int) (((odometer.getY() + ERRORMARGIN) % TILELENGTH)*TILELENGTH);
+		}			
+		
+		else if(getRobotDirection().equals("south")) {
+			destX = (int) (((odometer.getX() + ERRORMARGIN) % TILELENGTH)*TILELENGTH);
+			destY = (int) ((((odometer.getY() + ERRORMARGIN) % TILELENGTH) - 1)*TILELENGTH);
+		}	
+	}
+	
+	/**
+	 * Returns the general heading of the robot.
+	 * @return north, south, east or west in string form.
+	 */
 	public String getRobotDirection () {
 		if(odometer.getAng() < 45 && odometer.getAng() > 315) {
 			return "east";
@@ -214,6 +239,9 @@ public class Navigation {
 		}
 	}
 	
+	/**
+	 * Displaces the robot one tile. Relies on black line detection.
+	 */
 	public void traverseATile() {
 	// cover most of the tile quickly, then slow down for light localizer
 		setSpeeds(FAST,FAST);
@@ -229,16 +257,60 @@ public class Navigation {
 		 */
 	}
 	
+	/**
+	 * Moves the robot to the detected blue block
+	 */
 	public void goGrabBlock() {
 		
 	}
 	
-	public void howToApproachDropZone() {
+	/**
+	 * Gives the shortest path to the drop zone. Doesn't take obstacles and restricted areas into account. 
+	 */
+	public void getShortestPathToDropZone() {
+		int PLACEHOLDER = 9001;
+		int pathLengthX;
+		int pathLengthY;
+		int pathLength;
+		int bestPath = PLACEHOLDER;
+		int x;
+		int y;
 		
+		for(int i = 0; i < dropzoneX.length; i++) {
+			pathLengthX = (int)((dropzoneX[i] - odometer.getX() + ERRORMARGIN) % TILELENGTH);
+			pathLengthY = (int)((dropzoneY[i] - odometer.getY() + ERRORMARGIN) % TILELENGTH);
+			pathLength = Math.abs(pathLengthX) + Math.abs(pathLengthY);
+			
+			if(pathLength < bestPath) {
+				closestDropZonePtX = dropzoneX[i];
+				closestDropZonePtY = dropzoneY[i];
+				numOfHorizontalMoves = pathLengthX;
+				numOfVerticalMoves = pathLengthY;
+			}
+		}
 	}
 	
+	/**
+	 * Directs the robot along a path to the drop zone based on the calculations in the method getShortestPathToDropZone().
+	 */
+	// INCOMPLETE
 	public void bringToDropZone() {
-		
+		if(numOfVerticalMoves >= numOfHorizontalMoves) {
+			if(numOfVerticalMoves > 0) {
+				turnTo(90,false);
+			}
+			else {
+				turnTo(270,false);
+			}
+		}
+		else {
+			if(numOfHorizontalMoves > 0) {
+				turnTo(0,false);
+			}
+			else {
+				turnTo(180,false);
+			}				
+		}
 	}
 	
 	/**
