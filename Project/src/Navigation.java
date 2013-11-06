@@ -286,6 +286,7 @@ public class Navigation {
 				closestDropZonePtY = dropzoneY[i];
 				numOfHorizontalMoves = pathLengthX;
 				numOfVerticalMoves = pathLengthY;
+				bestPath = pathLength;
 			}
 		}
 	}
