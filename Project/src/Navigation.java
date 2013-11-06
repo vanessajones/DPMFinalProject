@@ -293,24 +293,60 @@ public class Navigation {
 	/**
 	 * Directs the robot along a path to the drop zone based on the calculations in the method getShortestPathToDropZone().
 	 */
-	// INCOMPLETE
+	// INCOMPLETE, requires behavior for bad path.
 	public void bringToDropZone() {
-		if(numOfVerticalMoves >= numOfHorizontalMoves) {
-			if(numOfVerticalMoves > 0) {
-				turnTo(90,false);
+		int order;
+		Boolean isSafe;
+		
+		while (numOfVerticalMoves != 0 || numOfHorizontalMoves != 0) {
+			isSafe = true;
+			
+			if(Math.abs(numOfVerticalMoves) >= Math.abs(numOfHorizontalMoves)) {
+				if(numOfVerticalMoves > 0) {
+					turnTo(90,false);
+				}
+				else {
+					turnTo(270,false);
+				}
 			}
 			else {
-				turnTo(270,false);
+				if(numOfHorizontalMoves > 0) {
+					turnTo(0,false);
+				}
+				else {
+					turnTo(180,false);
+				}
+			}
+			
+			// call obstacle detection, if object in way, change safe to false
+			getNextLineIntersection();
+			order = isBoundary(destX,destY);
+			if(order != 0) {
+				isSafe = false;
+			}
+			if(isSafe) {
+				traverseATile();
+				updatePath();
 			}
 		}
-		else {
-			if(numOfHorizontalMoves > 0) {
-				turnTo(0,false);
-			}
-			else {
-				turnTo(180,false);
-			}				
+	}
+	
+	/**
+	 * Updates the number of grid displacements required to reach drop zone.
+	 */
+	public void updatePath() {
+		if(getRobotDirection().equals("east")) {
+			numOfHorizontalMoves--;
 		}
+		else if(getRobotDirection().equals("north")) {
+			numOfVerticalMoves--;
+		}	
+		else if(getRobotDirection().equals("west")) {
+			numOfHorizontalMoves++;
+		}			
+		else if(getRobotDirection().equals("south")) {
+			numOfVerticalMoves++;
+		}			
 	}
 	
 	/**
