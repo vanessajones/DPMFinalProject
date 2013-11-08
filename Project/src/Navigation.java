@@ -8,9 +8,11 @@
 import lejos.nxt.Motor;
 import lejos.nxt.NXTRegulatedMotor;
 import lejos.nxt.UltrasonicSensor;
-import lejos.nxt.TouchSensor;
 import lejos.nxt.comm.Bluetooth;
+
 import java.lang.Math;
+
+import lejos.nxt.*;
 
 /** Class that houses the commands related to navigation.
  * 
@@ -24,18 +26,18 @@ public class Navigation {
 	
 	private Odometer odometer;
 	private NXTRegulatedMotor leftMotor, rightMotor;
-	private Bluetooth bt;
-	private LightLocalizer liLocalizer;
+//	private Bluetooth bt;
+//	private LightLocalizer liLocalizer;
 	private ObjectDetection objDetection;
 	
 	private final double RADIUS = 2.18;
-	private final double WIDTH = 15.8;
+	private final double WIDTH = 20;
 	private final double TILELENGTH = 30;
 	private final int ERRORMARGIN = 5;
 	
 	private boolean hasBlock = false;
 	private boolean foundBlock = false;
-	private boolean justWentStraight = false;
+	private boolean justWentStraight = true;
 	
 	private final int leftWallBound;
 	private final int rightWallBound;
@@ -91,9 +93,11 @@ public class Navigation {
 		}
 		
 		leftWallBound = -25;
-		rightWallBound = 200;
+		rightWallBound = 85;
 		topWallBound = 200;
 		bottomWallBound = -25;
+		
+		setSpeeds(SLOW,SLOW);
 /*		
 		role = bt.getRole();
 		startingLocation = bt.getStartingLocation();
@@ -160,7 +164,8 @@ public class Navigation {
 	public void goFindBlock() {
 		while(!foundBlock) {
 			if(justWentStraight) {
-				turnRight();
+				turnRight(false);
+				
 				foundBlock = scanForBlue();
 				if(foundBlock) {
 					goGrabBlock(odometer.getX(), odometer.getY());
@@ -170,9 +175,10 @@ public class Navigation {
 				pickSafeRoute();
 				traverseATile();
 				justWentStraight = false;
+				
 			}
 			else {
-				turnLeft();
+				turnLeft(false);
 				foundBlock = scanForBlue();
 				if(foundBlock) {
 					goGrabBlock(odometer.getX(), odometer.getY());
@@ -200,70 +206,75 @@ public class Navigation {
 	/**
 	 * Looks for a line intersection that isn't blocked or out of bounds.
 	 */
+
 	public void pickSafeRoute() {
 		boolean notSafe = true;
 		int order;
-
+		
 		while(notSafe) {
 			getNextLineIntersection();
-	
 		    order = isBoundary(destX,destY);
 		    
 		    // if its not a boundary or wall
 		    if(order == 0) {
+		    	
 		    	// check if obstacle in way
 			    if(!objDetection.isObstacle()) {
 			    	notSafe = false;
 			    }
-			    else {
+			    
+			    else { 
 			        if(justWentStraight) {
-				        turnLeft();
+				        turnLeft(true);
 				    }
 				    else {
-				        turnRight();
+				        turnRight(true);
 				    }			    	
 			    }
 		    }
 		    
-		    // if its a boundary
+		    // if its a wall
 		    else if(order == 1) {
-		        if(justWentStraight) {
-		            turnLeft();
-		        }
-		        else {
-		            turnRight();
-		        }
+		        rotateBy(180,true);
+
 		    }
 		    
-		    //if its a wall
+		    //if its a boundary
 		    else {
-		        rotateBy(180,false);
+		        if(justWentStraight) {
+		            turnLeft(true);
+		        }
+		        else {
+		            turnRight(true);
+		        }
 		    }
 		    
 		}
-	}
+	}	
 	
 	/**
 	 * Stores the coordinates of the nearest line intersection in the robot's heading.
 	 */
 	public void getNextLineIntersection() {
+		
 		if(getRobotDirection().equals("east")) {
-			destX = (int) ((((odometer.getX() + ERRORMARGIN) % TILELENGTH) + 1)*TILELENGTH);
-			destY = (int) (((odometer.getY() + ERRORMARGIN) % TILELENGTH)*TILELENGTH);
+			destX = (int) (((int)((odometer.getX() + ERRORMARGIN) / TILELENGTH) + 1)*TILELENGTH);
+			destY = (int) ((int)((odometer.getY() + ERRORMARGIN) / TILELENGTH)*TILELENGTH);
 		}
 		else if(getRobotDirection().equals("north")) {
-			destX = (int) (((odometer.getX() + ERRORMARGIN) % TILELENGTH)*TILELENGTH);
-			destY = (int) ((((odometer.getY() + ERRORMARGIN) % TILELENGTH) + 1)*TILELENGTH);
+			destX = (int) ((int)((odometer.getX() + ERRORMARGIN) / TILELENGTH)*TILELENGTH);
+			destY = (int) (((int)((odometer.getY() + ERRORMARGIN) / TILELENGTH) + 1)*TILELENGTH);
 		}	
 		else if(getRobotDirection().equals("west")) {
-			destX = (int) ((((odometer.getX() + ERRORMARGIN) % TILELENGTH) - 1)*TILELENGTH);
-			destY = (int) (((odometer.getY() + ERRORMARGIN) % TILELENGTH)*TILELENGTH);
+			destX = (int) (((int)((odometer.getX() + ERRORMARGIN) / TILELENGTH) - 1)*TILELENGTH);
+			destY = (int) ((int)((odometer.getY() + ERRORMARGIN) / TILELENGTH)*TILELENGTH);
 		}			
 		
 		else if(getRobotDirection().equals("south")) {
-			destX = (int) (((odometer.getX() + ERRORMARGIN) % TILELENGTH)*TILELENGTH);
-			destY = (int) ((((odometer.getY() + ERRORMARGIN) % TILELENGTH) - 1)*TILELENGTH);
+			destX = (int) ((int)((odometer.getX() + ERRORMARGIN) / TILELENGTH)*TILELENGTH);
+			destY = (int) (((int)((odometer.getY() + ERRORMARGIN) / TILELENGTH) - 1)*TILELENGTH);
 		}	
+		System.out.println(getRobotDirection() + "," + destX + ", " + destY);
 	}
 	
 	/**
@@ -271,7 +282,7 @@ public class Navigation {
 	 * @return north, south, east or west in string form.
 	 */
 	public String getRobotDirection () {
-		if(odometer.getAng() < 45 && odometer.getAng() > 315) {
+		if(odometer.getAng() < 45 || odometer.getAng() > 315) {
 			return "east";
 		}
 		else if(odometer.getAng() < 135 && odometer.getAng() > 45) {
@@ -291,10 +302,10 @@ public class Navigation {
 	public void traverseATile() {
 	// cover most of the tile quickly, then slow down for light localizer
 		setSpeeds(FAST,FAST);
-		travelBy((TILELENGTH - 5),false);
+		travelBy((TILELENGTH - 5),true);
 		setSpeeds(SLOW,SLOW);
 		// replace following line with lightlocalizer code
-		travelBy(5,false);
+		travelBy(5,true);
 		
 		/*
 		ping lightsensors until one of the sensors finds a blackline, cut the motors and call 
@@ -403,6 +414,7 @@ public class Navigation {
 		
 		travelBy(10, false);
 		travelTo(closestDropZonePtX, closestDropZonePtY);
+		rotateBy(45, true);
 	}
 	
 	/**
@@ -552,12 +564,22 @@ public class Navigation {
 		return 0;
 	}
 	
-	public void turnRight() {
-		rotateBy(90,false);
+	public void turnRight(boolean wait) {
+		if(wait) {
+			rotateBy(90,true);			
+		}
+		else {
+			rotateBy(90,false);			
+		}
 	}
 	
-	public void turnLeft() {
-		rotateBy(-90,false);
+	public void turnLeft(boolean wait) {
+		if(wait) {
+			rotateBy(-90,true);			
+		}
+		else {
+			rotateBy(-90,false);			
+		}
 	}
 	
 	/**
@@ -573,11 +595,13 @@ public class Navigation {
 			return 1;
 		}
 		
+		/*
 		for(int i = 0; i < restrictedAreaX.length; i++) {
 			if(restrictedAreaX[i] == destX && restrictedAreaY[i] == destY) {
 				return 2;
 			}
 		}
+		*/
 				
 		return 0;
 	}

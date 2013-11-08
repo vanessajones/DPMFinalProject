@@ -1,6 +1,5 @@
 import lejos.nxt.Button;
 import lejos.nxt.ColorSensor;
-import lejos.nxt.LCD;
 import lejos.nxt.Motor;
 import lejos.nxt.SensorPort;
 import lejos.nxt.UltrasonicSensor;
@@ -14,22 +13,17 @@ public class Main {
 	// code for testing the object detection
 	public static void main(String[] args) {
 		
-		do {(new Thread() {
-			public void run() {
-				UltrasonicSensor us1 = new UltrasonicSensor(SensorPort.S1);
-				UltrasonicSensor us2 = new UltrasonicSensor(SensorPort.S2);
-				Odometer odo = new Odometer(Motor.A, Motor.B, 30, true);
-				ObjectDetection objdet = new ObjectDetection(us1, us2);
-				Navigation navi = new Navigation(odo, objdet);
-				
-				while(true) {
-					navi.goFindBlock();
-					navi.bringToDropZone();
-				}
+			UltrasonicSensor us1 = new UltrasonicSensor(SensorPort.S1);
+			UltrasonicSensor us2 = new UltrasonicSensor(SensorPort.S2);
+			Odometer odo = new Odometer(Motor.A, Motor.B, 30, true);
+			ObjectDetection objdet = new ObjectDetection(us1, us2);
+			Navigation navi = new Navigation(odo, objdet);
+			
+
+			while(true) {
+				navi.goFindBlock();
+				navi.bringToDropZone();
 			}
-				
-			}).start();
-		} while (Button.waitForAnyPress() != Button.ID_ESCAPE);
-		System.exit(0);
-	}
+
+		}
 }

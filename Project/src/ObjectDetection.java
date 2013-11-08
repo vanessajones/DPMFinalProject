@@ -9,6 +9,7 @@ public class ObjectDetection {
 
 	private UltrasonicSensor us1;
 	private UltrasonicSensor us2;
+	private int samples = 20;
 	
 	private final int BLOCK_DISTANCE = 45;
 	
@@ -30,14 +31,23 @@ public class ObjectDetection {
 	 */
 	public boolean isBlue(){
 		
-		int distanceUS1, distanceUS2;
+		int distanceUS2;
+		boolean falseAlarm = false;
 		
-		distanceUS1 = getFilteredData(us1);
 		distanceUS2 = getFilteredData(us2);
 		
-		
-		if (distanceUS1 < BLOCK_DISTANCE && distanceUS2 > BLOCK_DISTANCE) {
-			return true;
+		if (distanceUS2 < BLOCK_DISTANCE) {
+			for(int i = 0; i < samples; i++) {
+				if(getFilteredData(us1) < BLOCK_DISTANCE + 10) {
+					falseAlarm = true;
+				}
+				if(getFilteredData(us2) > BLOCK_DISTANCE) {				
+					falseAlarm = true;
+				}
+			}
+			if(!falseAlarm) {
+				return true;					
+			}
 		}
 		
 		return false;
@@ -47,9 +57,10 @@ public class ObjectDetection {
 		
 		int distance;
 		
-		distance = getFilteredData(us2);
+		distance = getFilteredData(us1);
 		
 		if(distance < BLOCK_DISTANCE) {
+			Sound.buzz();
 			return true;
 		}
 		
