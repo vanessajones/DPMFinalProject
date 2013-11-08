@@ -10,7 +10,7 @@ public class ObjectDetection {
 	private UltrasonicSensor us1;
 	private UltrasonicSensor us2;
 	
-	private final int BLOCK_DISTANCE = 30;
+	private final int BLOCK_DISTANCE = 45;
 	
 	/** Constructor method to import the two ultrasonic sensors
 	 * 
@@ -37,6 +37,19 @@ public class ObjectDetection {
 		
 		
 		if (distanceUS1 < BLOCK_DISTANCE && distanceUS2 > BLOCK_DISTANCE) {
+			return true;
+		}
+		
+		return false;
+	}
+	
+	public boolean isObstacle() {
+		
+		int distance;
+		
+		distance = getFilteredData(us2);
+		
+		if(distance < BLOCK_DISTANCE) {
 			return true;
 		}
 		

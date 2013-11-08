@@ -7,8 +7,10 @@ import lejos.nxt.*;
  */
 public class HandleBlock {
 
-	private final double CAPTURE_DEGREES = 100; // tentative value, must test it
-	private final double LIFT_DEGREES = 100; // tentative value, must test it
+	private final int CAPTURE_DEGREES = 100; // tentative value, must test it
+	private final int LIFT_DEGREES = 100; // tentative value, must test it
+	private final int LOWER_DEGREES = 100;
+	private final int RELEASE_DEGREES = 100;
 	private boolean manipulating; // boolean that determines if the block is currently being manipulated
 	private NXTRegulatedMotor lifting;
 
@@ -24,25 +26,28 @@ public class HandleBlock {
 	 * 
 	 */
 	public void capture(){
-		
+		lifting.rotate(CAPTURE_DEGREES);
 	}
 	
 	/** After capturing the blue styrofoam block, the motor is rotated a certain amount of degrees to lift the block.
 	 * 
 	 */
 	public void lift(){
+		lifting.rotate(LIFT_DEGREES);
 	}
 	
 	/** Lower the block to stack
 	 * 
 	 */
 	public void lower(){
+		lifting.rotate(LOWER_DEGREES);
 	}
 	
 	/** Release the block
 	 * 
 	 */
 	public void release() {
+		lifting.rotate(RELEASE_DEGREES);
 	}
 	
 	/** Getter that determines if the robot is handling a block

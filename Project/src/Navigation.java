@@ -1,3 +1,9 @@
+/*Note: require light localizer method that will localize by crossing a gridline
+ *      require object detection method that will return if there's an obstacle directly in front of robot; not sufficient
+ *      to just ping ahead since robot is too wide to cover. Require method that will ping for blue block and then go to it
+ *      if one is found.
+ */
+
 
 import lejos.nxt.Motor;
 import lejos.nxt.NXTRegulatedMotor;
@@ -31,10 +37,10 @@ public class Navigation {
 	private boolean foundBlock = false;
 	private boolean justWentStraight = false;
 	
-	private final int leftWallBound = -25;
-	private final int rightWallBound = 325;
-	private final int topWallBound = 325;
-	private final int bottomWallBound = -25;
+	private final int leftWallBound;
+	private final int rightWallBound;
+	private final int topWallBound;
+	private final int bottomWallBound;
 	private int[] restrictedAreaX;
 	private int[] restrictedAreaY;
 	private int[] dropzoneX;
@@ -58,10 +64,10 @@ public class Navigation {
 	 * @param od imports ObjectDetection
 	 */
 	
-	public Navigation(Odometer odo, Bluetooth bt, LightLocalizer ls, ObjectDetection od) {
+	public Navigation(Odometer odo, ObjectDetection od) {
 		this.odometer = odo;
-		this.bt = bt;
-		this.liLocalizer = ls;
+//		this.bt = bt;
+//		this.liLocalizer = ls;
 		this.objDetection = od;
 		
 		this.leftMotor = Motor.A;
@@ -70,6 +76,24 @@ public class Navigation {
 		// set acceleration
 		this.leftMotor.setAcceleration(ACCELERATION);
 		this.rightMotor.setAcceleration(ACCELERATION);
+		
+		// test code for milestone demo
+
+		int[] inputX = {120,150,120,150};
+		this.dropzoneX = new int[inputX.length];
+
+		int [] inputY = {120,120,150,150};
+		this.dropzoneY = new int[inputY.length];
+		
+		for(int i = 0; i < dropzoneX.length; i++) {
+			dropzoneX[i] = inputX[i];
+			dropzoneY[i] = inputY[i];
+		}
+		
+		leftWallBound = -25;
+		rightWallBound = 200;
+		topWallBound = 200;
+		bottomWallBound = -25;
 /*		
 		role = bt.getRole();
 		startingLocation = bt.getStartingLocation();
@@ -79,6 +103,7 @@ public class Navigation {
 		dropzoneY = bt.getdropzone;
 */
 	}
+	
 	
 	
 	/** Sets the travel speed of the robot
@@ -136,27 +161,40 @@ public class Navigation {
 		while(!foundBlock) {
 			if(justWentStraight) {
 				turnRight();
-				/*if ObjectDetection found a block as robot was rotating, 
-				 * 	  foundBlock = true;
-				 *    call goGrabBlock
-				 *    break
-				 */
+				foundBlock = scanForBlue();
+				if(foundBlock) {
+					goGrabBlock(odometer.getX(), odometer.getY());
+					break;
+				}
+
 				pickSafeRoute();
 				traverseATile();
 				justWentStraight = false;
 			}
 			else {
 				turnLeft();
-				/*if ObjectDetection found a block as robot was rotating, 
-				 * 	  foundBlock = true;
-				 *    call goGrabBlock
-				 *    break
-				 */
+				foundBlock = scanForBlue();
+				if(foundBlock) {
+					goGrabBlock(odometer.getX(), odometer.getY());
+					break;
+				}
 				pickSafeRoute();
 				traverseATile();
 				justWentStraight = true;
 			}
 		}
+	}
+	
+	public boolean scanForBlue() {
+		boolean found = false;
+		while(leftMotor.isMoving() || rightMotor.isMoving()) {
+			if(objDetection.isBlue()) {
+				found = true;
+				leftMotor.stop();
+				rightMotor.stop();
+			}
+		}
+		return found;
 	}
 	
 	/**
@@ -169,31 +207,39 @@ public class Navigation {
 		while(notSafe) {
 			getNextLineIntersection();
 	
-		/* if(ObjectDetection doesn't see an obstacle in the way) {
-		 *    order = isBoundary(destX,destY);
-		 *    if(order == 0) {
-		 *       notSafe = false;
-		 *    }
-		 *    else if(order == 1) {
-		 *       if(justWentStraight) {
-		 *          turnLeft();
-		 *       }
-		 *       else {
-		 *          turnRight();
-		 *       }
-		 *    else {
-		 *       rotateBy(180,false);
-		 *    }
-		 * else {
-		 *    if(justWentStraight) {
-		 *       turnLeft();
-		 *    }
-		 *    else {
-		 *       turnRight();
-		 *    }
-		 * }
-		*/
-
+		    order = isBoundary(destX,destY);
+		    
+		    // if its not a boundary or wall
+		    if(order == 0) {
+		    	// check if obstacle in way
+			    if(!objDetection.isObstacle()) {
+			    	notSafe = false;
+			    }
+			    else {
+			        if(justWentStraight) {
+				        turnLeft();
+				    }
+				    else {
+				        turnRight();
+				    }			    	
+			    }
+		    }
+		    
+		    // if its a boundary
+		    else if(order == 1) {
+		        if(justWentStraight) {
+		            turnLeft();
+		        }
+		        else {
+		            turnRight();
+		        }
+		    }
+		    
+		    //if its a wall
+		    else {
+		        rotateBy(180,false);
+		    }
+		    
 		}
 	}
 	
@@ -247,6 +293,9 @@ public class Navigation {
 		setSpeeds(FAST,FAST);
 		travelBy((TILELENGTH - 5),false);
 		setSpeeds(SLOW,SLOW);
+		// replace following line with lightlocalizer code
+		travelBy(5,false);
+		
 		/*
 		ping lightsensors until one of the sensors finds a blackline, cut the motors and call 
 		localizer method.
@@ -258,10 +307,12 @@ public class Navigation {
 	}
 	
 	/**
-	 * Moves the robot to the detected blue block
+	 * Moves the robot to the detected blue block, robot will travel to inputs after it's grabbed the block
 	 */
-	public void goGrabBlock() {
-		
+	//INCOMPLETE
+	public void goGrabBlock(double x, double y) {
+		travelBy(20,true);
+		travelTo(x,y);
 	}
 	
 	/**
@@ -273,8 +324,6 @@ public class Navigation {
 		int pathLengthY;
 		int pathLength;
 		int bestPath = PLACEHOLDER;
-		int x;
-		int y;
 		
 		for(int i = 0; i < dropzoneX.length; i++) {
 			pathLengthX = (int)((dropzoneX[i] - odometer.getX() + ERRORMARGIN) % TILELENGTH);
@@ -298,6 +347,7 @@ public class Navigation {
 	public void bringToDropZone() {
 		int order;
 		Boolean isSafe;
+		getShortestPathToDropZone();
 		
 		while (numOfVerticalMoves != 0 || numOfHorizontalMoves != 0) {
 			isSafe = true;
@@ -329,7 +379,30 @@ public class Navigation {
 				traverseATile();
 				updatePath();
 			}
+			// robot moves past obstacle and updates shortest path
+			else {
+				circumventObstacle();
+				getShortestPathToDropZone();
+				
+			}
 		}
+		
+		// bad code, replace later
+		if(closestDropZonePtX == dropzoneX[0]) {
+			turnTo(45, false);
+		}
+		else if(closestDropZonePtX == dropzoneX[1]) {
+			turnTo(135, false);
+		}
+		else if(closestDropZonePtX == dropzoneX[2]) {
+			turnTo(315, false);
+		}
+		else {
+			turnTo(225, false);
+		}
+		
+		travelBy(10, false);
+		travelTo(closestDropZonePtX, closestDropZonePtY);
 	}
 	
 	/**
@@ -348,6 +421,56 @@ public class Navigation {
 		else if(getRobotDirection().equals("south")) {
 			numOfVerticalMoves++;
 		}			
+	}
+	
+	public void circumventObstacle() {
+		String heading = getRobotDirection();
+		int angle;
+		int originalHeading;
+		boolean safe = false;
+		
+		if(heading.equals("north") || heading.equals("south")) {
+			if(numOfHorizontalMoves > 0) {
+				angle = 0;
+			}
+			else {
+				angle = 180;
+			}
+			if(heading.equals("north")) {
+				originalHeading = 90;
+			}
+			else {
+				originalHeading = 270;				
+			}
+		}
+		else {
+			if(numOfVerticalMoves > 0) {
+				angle = 90;
+			}
+			else {
+				angle = 270;
+			}
+			
+			if(heading.equals("west")) {
+				originalHeading = 180;
+			}
+			else {
+				originalHeading = 0;				
+			}
+		}
+		
+		// Circumvent code goes here.		
+		while(!safe) {
+			turnTo(angle, false);
+			traverseATile();
+			turnTo(originalHeading, false);
+			safe = objDetection.isObstacle();
+			if(safe) {
+				traverseATile();
+			}
+		}
+
+		
 	}
 	
 	/**

@@ -18,20 +18,16 @@ public class Main {
 			public void run() {
 				UltrasonicSensor us1 = new UltrasonicSensor(SensorPort.S1);
 				UltrasonicSensor us2 = new UltrasonicSensor(SensorPort.S2);
+				Odometer odo = new Odometer(Motor.A, Motor.B, 30, true);
 				ObjectDetection objdet = new ObjectDetection(us1, us2);
-				boolean blue;
-				LCD.drawChar('a', 0, 0);
-				while (true) {
-					blue = objdet.isBlue();
-					if (blue) {
-						LCD.drawString("true ", 0, 0);
-					}
-					else {
-						LCD.drawString("false", 0, 0);
-					}
-					try {Thread.sleep(100);} catch (Exception E) {}
+				Navigation navi = new Navigation(odo, objdet);
+				
+				while(true) {
+					navi.goFindBlock();
+					navi.bringToDropZone();
 				}
-				}
+			}
+				
 			}).start();
 		} while (Button.waitForAnyPress() != Button.ID_ESCAPE);
 		System.exit(0);
