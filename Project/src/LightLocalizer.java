@@ -130,7 +130,27 @@ public class LightLocalizer {
         public void setLocalizing(boolean isLocalizing){
                 this.localizing = isLocalizing;
         }
-        
+        public void updateOdo(){
+        	double x = odo.getX();
+        	double y = odo.getY();
+        	double line;
+        	double position; 
+        	
+        	// if the robot is going along the y-direction, update the y-direction
+        	if (odo.getAng()==0 || odo.getAng() == 180){
+        		line = x % 30.48; 
+        		position = line*30.48;
+        		odo.setPosition(new double [] {0.0, position , odo.getAng()}, new boolean [] {false, true, false});	
+        	}
+        	
+        	// if the robot is going along the x-direction, update the x-direction
+        	else {
+        		line = x % 30.48; 
+        		position = line*30.48;
+        		odo.setPosition(new double [] {position, 0.0 , odo.getAng()}, new boolean [] {true, false, false});	
+        	}
+        	
+        }
         /** 
          * 
          * @return the status of the robot's light localization. Returns true if the robot is localizing and false othewise
