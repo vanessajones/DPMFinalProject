@@ -60,6 +60,7 @@ public class LightLocalizer {
                 LCD.drawString(Double.toString(blueRight),0,3);
                 LCD.drawString(Double.toString(greenRight),0,4);
                 */
+            
                 leftMotor.setSpeed(50);
                 rightMotor.setSpeed(50);
                 leftMotor.forward();
@@ -71,9 +72,9 @@ public class LightLocalizer {
                 
                 else if (isLine(blueLeft, redLeft,1)) {
                         LCD.drawString("left one         ", 0, 1);
-                        while (!(isLine(color2.getBlue(), color2.getRed(),2))){
-                                leftMotor.stop();
-                        }
+                        do {
+                        	leftMotor.stop();
+                        } while (!(isLine(color2.getBlue(), color2.getRed(),2)));
                         leftMotor.setSpeed(50);
                         rightMotor.setSpeed(50);
                         leftMotor.forward();
@@ -83,6 +84,13 @@ public class LightLocalizer {
                 
                 else if (isLine(blueRight, redRight,2)) {
                         LCD.drawString("right one        !",0,1);
+                        do {
+                        	leftMotor.stop();
+                        } while (!(isLine(color1.getBlue(), color1.getRed(),1)));
+                        leftMotor.setSpeed(50);
+                        rightMotor.setSpeed(50);
+                        leftMotor.forward();
+                        rightMotor.forward();
                 }
                 else {
                         LCD.drawString("Not a line        ",0,1);
