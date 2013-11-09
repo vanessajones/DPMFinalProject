@@ -9,8 +9,9 @@ public class ObjectDetection {
 
 	private UltrasonicSensor us1;
 	private UltrasonicSensor us2;
+	private int samples = 20;
 	
-	private final int BLOCK_DISTANCE = 30;
+	private final int BLOCK_DISTANCE = 45;
 	
 	/** Constructor method to import the two ultrasonic sensors
 	 * 
@@ -30,13 +31,36 @@ public class ObjectDetection {
 	 */
 	public boolean isBlue(){
 		
-		int distanceUS1, distanceUS2;
+		int distanceUS2;
+		boolean falseAlarm = false;
 		
-		distanceUS1 = getFilteredData(us1);
 		distanceUS2 = getFilteredData(us2);
 		
+		if (distanceUS2 < BLOCK_DISTANCE) {
+			for(int i = 0; i < samples; i++) {
+				if(getFilteredData(us1) < BLOCK_DISTANCE + 10) {
+					falseAlarm = true;
+				}
+				if(getFilteredData(us2) > BLOCK_DISTANCE) {				
+					falseAlarm = true;
+				}
+			}
+			if(!falseAlarm) {
+				return true;					
+			}
+		}
 		
-		if (distanceUS1 < BLOCK_DISTANCE && distanceUS2 > BLOCK_DISTANCE) {
+		return false;
+	}
+	
+	public boolean isObstacle() {
+		
+		int distance;
+		
+		distance = getFilteredData(us1);
+		
+		if(distance < BLOCK_DISTANCE) {
+			Sound.buzz();
 			return true;
 		}
 		
