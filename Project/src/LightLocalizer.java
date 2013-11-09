@@ -8,7 +8,7 @@ import lejos.nxt.LCD;
  */
 public class LightLocalizer {
 
-        //private Odometer odo;
+        private Odometer odo;
         private ColorSensor cs1;
         private ColorSensor cs2;
         private NXTRegulatedMotor leftMotor;
@@ -22,15 +22,16 @@ public class LightLocalizer {
          * @param odo import odometer to correct 
          */
         
-        public LightLocalizer(ColorSensor cs1, ColorSensor cs2, NXTRegulatedMotor leftMotor, NXTRegulatedMotor rightMotor){
-                /* Import the color sensors */
+        public LightLocalizer(ColorSensor cs1, ColorSensor cs2, NXTRegulatedMotor leftMotor, NXTRegulatedMotor rightMotor, Odometer odo){
+                
+        		/* Import the color sensors */
                 this.cs1 = cs1;
                 this.cs2 = cs2;
                 
                 /* Import the motor */
                 this.leftMotor = leftMotor;
                 this.rightMotor = rightMotor;
-                //this.odo = odo;
+                this.odo = odo;
                 
                 /* Turn floodlights on */
                 cs1.setFloodlight(2);

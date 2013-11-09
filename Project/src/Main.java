@@ -20,7 +20,7 @@ public class Main {
         // code for testing the object detection
         public static void main(String[] args) {
                 
-                                
+                                Odometer odo = new Odometer(leftMotor, rightMotor, 20, true);
                                 UltrasonicSensor us1 = new UltrasonicSensor(SensorPort.S1);
                                 UltrasonicSensor us2 = new UltrasonicSensor(SensorPort.S2);
                                 ColorSensor cs1 = new ColorSensor(SensorPort.S3);
@@ -28,7 +28,7 @@ public class Main {
                                 //ObjectDetection objdet = new ObjectDetection(us1, us2);
                                 //boolean blue;
                                 //HandleBlock lift = new HandleBlock();
-                                LightLocalizer light = new LightLocalizer(cs1,cs2, leftMotor, rightMotor);
+                                LightLocalizer light = new LightLocalizer(cs1,cs2, leftMotor, rightMotor, odo);
                                 while (true){
                                         light.doLocalization();
                                         try {Thread.sleep(50);} catch (Exception E) {}
