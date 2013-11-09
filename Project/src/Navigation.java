@@ -203,6 +203,29 @@ public class Navigation {
 		return found;
 	}
 	
+	public boolean scanAheadForObstacle() {
+		double originalAngle = odometer.getAng();
+		
+		rotateBy(30,false);
+		while(leftMotor.isMoving() || rightMotor.isMoving()) {
+			if(objDetection.isObstacle()) {
+				turnTo(originalAngle, false);
+				return false;
+			}
+		}
+		
+		rotateBy(-60,false);
+		while(leftMotor.isMoving() || rightMotor.isMoving()) {
+			if(objDetection.isObstacle()) {
+				turnTo(originalAngle, false);
+				return false;
+			}
+		}
+		
+		turnTo(originalAngle,false);
+		return true;
+	}
+	
 	/**
 	 * Looks for a line intersection that isn't blocked or out of bounds.
 	 */
@@ -219,7 +242,7 @@ public class Navigation {
 		    if(order == 0) {
 		    	
 		    	// check if obstacle in way
-			    if(!objDetection.isObstacle()) {
+			    if(scanAheadForObstacle()) {
 			    	notSafe = false;
 			    }
 			    
@@ -236,6 +259,7 @@ public class Navigation {
 		    // if its a wall
 		    else if(order == 1) {
 		        rotateBy(180,true);
+		        justWentStraight = false;
 
 		    }
 		    
@@ -256,25 +280,26 @@ public class Navigation {
 	 * Stores the coordinates of the nearest line intersection in the robot's heading.
 	 */
 	public void getNextLineIntersection() {
+		String heading = getRobotDirection();
 		
-		if(getRobotDirection().equals("east")) {
+		if(heading.equals("east")) {
 			destX = (int) (((int)((odometer.getX() + ERRORMARGIN) / TILELENGTH) + 1)*TILELENGTH);
 			destY = (int) ((int)((odometer.getY() + ERRORMARGIN) / TILELENGTH)*TILELENGTH);
 		}
-		else if(getRobotDirection().equals("north")) {
+		else if(heading.equals("north")) {
 			destX = (int) ((int)((odometer.getX() + ERRORMARGIN) / TILELENGTH)*TILELENGTH);
 			destY = (int) (((int)((odometer.getY() + ERRORMARGIN) / TILELENGTH) + 1)*TILELENGTH);
 		}	
-		else if(getRobotDirection().equals("west")) {
+		else if(heading.equals("west")) {
 			destX = (int) (((int)((odometer.getX() + ERRORMARGIN) / TILELENGTH) - 1)*TILELENGTH);
 			destY = (int) ((int)((odometer.getY() + ERRORMARGIN) / TILELENGTH)*TILELENGTH);
 		}			
 		
-		else if(getRobotDirection().equals("south")) {
+		else if(heading.equals("south")) {
 			destX = (int) ((int)((odometer.getX() + ERRORMARGIN) / TILELENGTH)*TILELENGTH);
 			destY = (int) (((int)((odometer.getY() + ERRORMARGIN) / TILELENGTH) - 1)*TILELENGTH);
 		}	
-		System.out.println(getRobotDirection() + "," + destX + ", " + destY);
+		System.out.println(heading + "," + destX + ", " + destY);
 	}
 	
 	/**
@@ -282,13 +307,15 @@ public class Navigation {
 	 * @return north, south, east or west in string form.
 	 */
 	public String getRobotDirection () {
-		if(odometer.getAng() < 45 || odometer.getAng() > 315) {
+		double angle =  odometer.getAng();
+		
+		if(angle < 45 || angle > 315) {
 			return "east";
 		}
-		else if(odometer.getAng() < 135 && odometer.getAng() > 45) {
+		else if(angle < 135 && angle > 45) {
 			return "north";
 		}
-		else if(odometer.getAng() < 225 && odometer.getAng() > 135) {
+		else if(angle < 225 && angle > 135) {
 			return "west";
 		}
 		else {
@@ -323,7 +350,8 @@ public class Navigation {
 	//INCOMPLETE
 	public void goGrabBlock(double x, double y) {
 		travelBy(20,true);
-		travelTo(x,y);
+		travelBy(-20,true);
+		rotateBy(135,true);
 	}
 	
 	/**
@@ -337,8 +365,8 @@ public class Navigation {
 		int bestPath = PLACEHOLDER;
 		
 		for(int i = 0; i < dropzoneX.length; i++) {
-			pathLengthX = (int)((dropzoneX[i] - odometer.getX() + ERRORMARGIN) % TILELENGTH);
-			pathLengthY = (int)((dropzoneY[i] - odometer.getY() + ERRORMARGIN) % TILELENGTH);
+			pathLengthX = (int)((dropzoneX[i] - odometer.getX() + ERRORMARGIN) / TILELENGTH);
+			pathLengthY = (int)((dropzoneY[i] - odometer.getY() + ERRORMARGIN) / TILELENGTH);
 			pathLength = Math.abs(pathLengthX) + Math.abs(pathLengthY);
 			
 			if(pathLength < bestPath) {
@@ -476,7 +504,7 @@ public class Navigation {
 			turnTo(angle, false);
 			traverseATile();
 			turnTo(originalHeading, false);
-			safe = objDetection.isObstacle();
+			safe = scanAheadForObstacle();
 			if(safe) {
 				traverseATile();
 			}
@@ -565,6 +593,7 @@ public class Navigation {
 	}
 	
 	public void turnRight(boolean wait) {
+		setSpeeds(FAST,FAST);
 		if(wait) {
 			rotateBy(90,true);			
 		}
@@ -574,6 +603,7 @@ public class Navigation {
 	}
 	
 	public void turnLeft(boolean wait) {
+		setSpeeds(FAST,FAST);
 		if(wait) {
 			rotateBy(-90,true);			
 		}
