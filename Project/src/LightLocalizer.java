@@ -14,6 +14,9 @@ public class LightLocalizer {
         private NXTRegulatedMotor leftMotor;
         private NXTRegulatedMotor rightMotor;
         private boolean localizing;
+        private final double angleThreshold = 3;  		// test this
+        private final double sensorCorrection = 70;		// test this
+        private final double lightThreshold = 480;		// test this 
         
         /** Class constructor
          * 
@@ -34,8 +37,8 @@ public class LightLocalizer {
                 this.odo = odo;
                 
                 /* Turn floodlights on */
-                cs1.setFloodlight(2);
-                cs2.setFloodlight(2);
+                cs1.setFloodlight(true);
+                cs2.setFloodlight(true);
                 
         }
         
@@ -46,36 +49,44 @@ public class LightLocalizer {
                 
                 localizing = true;
                 
-                ColorSensor.Color color1 = cs1.getRawColor();
-                ColorSensor.Color color2 = cs2.getRawColor();
+                double left = cs1.getNormalizedLightValue();
+                double right =  cs2.getNormalizedLightValue();
                 
-                double blueLeft = color1.getBlue();
-                double redLeft = color1.getRed();
-                
-                double blueRight = color2.getBlue();
-                double redRight = color2.getRed();
-                
-                /* For testing purposes 
-                LCD.drawString(Double.toString(blueLeft),0,1);
-                LCD.drawString(Double.toString(green),0,2);
-                LCD.drawString(Double.toString(blueRight),0,3);
-                LCD.drawString(Double.toString(greenRight),0,4);
-                */
-            
+                LCD.drawString(Double.toString(left),0,1);
+                LCD.drawString(Double.toString(right),0,2);
+          
+                /*
                 leftMotor.setSpeed(50);
                 rightMotor.setSpeed(50);
                 leftMotor.forward();
                 rightMotor.forward();
+                */
                 
-                if (isLine(blueLeft, redLeft, 1) && isLine(blueRight, redRight,2)){
+                if (isLine(left, 1) && isLine(right, 2)){
+                	
+                		/* for testing only
                         LCD.drawString("Both on the line!",0,1);
+                        
+                        LCD.drawString(Double.toString(odo.getX()),0,1);
+                        LCD.drawString(Double.toString(odo.getY()),0,2);
+                        LCD.drawString(Double.toString(odo.getAng()),0,3);
+                        */
+                       
+                        updateOdo();
+                        
+                        /* for testing only
+                        LCD.drawString(Double.toString(odo.getX()),0,1);
+                        LCD.drawString(Double.toString(odo.getY()),0,2);
+                        LCD.drawString(Double.toString(odo.getAng()),0,3);
+                        */
                 }
                 
-                else if (isLine(blueLeft, redLeft,1)) {
-                        LCD.drawString("left one         ", 0, 1);
+                else if (isLine(left,1)) {
+                       LCD.drawString("left one         ", 0, 1);
                         do {
                         	leftMotor.stop();
-                        } while (!(isLine(color2.getBlue(), color2.getRed(),2)));
+                        } while (!(isLine(cs2.getNormalizedLightValue(),2)));
+                        
                         leftMotor.setSpeed(50);
                         rightMotor.setSpeed(50);
                         leftMotor.forward();
@@ -83,19 +94,21 @@ public class LightLocalizer {
                         
                 }
                 
-                else if (isLine(blueRight, redRight,2)) {
+                else if (isLine(right,2)) {
                         LCD.drawString("right one        !",0,1);
                         do {
                         	leftMotor.stop();
-                        } while (!(isLine(color1.getBlue(), color1.getRed(),1)));
+                        } while (!(isLine(cs1.getNormalizedLightValue(),1)));
                         leftMotor.setSpeed(50);
                         rightMotor.setSpeed(50);
                         leftMotor.forward();
                         rightMotor.forward();
                 }
+               
                 else {
                         LCD.drawString("Not a line        ",0,1);
                 }
+                */
         
         }
         
@@ -104,16 +117,16 @@ public class LightLocalizer {
          * @param red red value read by the sensor
          * @param line determines which sensor read the values
          * */
-        public boolean isLine(double blue, double red, int line){
+        public boolean isLine(double light, int line){
                 /* Calibration for the right sensors's values
-                 *  The values for the red are always 70 units higher than the value returned by the left sensor
+                 *  The values for the red are always sensorCorrection units higher than the value returned by the left sensor
                  */
                 if (line==2){
-                        red = red - 70;
+                        light = light - sensorCorrection;
                 }
                 
                 /* If the values are within a threshold, return that it's a line **/
-                if (blue<415 && blue>350 && red<475 && red>400) {
+                if (light < lightThreshold ) {
                         return true;  
                 }
                 
@@ -127,9 +140,14 @@ public class LightLocalizer {
         /** Sets the robot to localizing/not localizing
          * @param isLocalizing sets the robot's status. 
          */
+        
         public void setLocalizing(boolean isLocalizing){
                 this.localizing = isLocalizing;
         }
+        
+        /** Updates the odometer, after going over a line 
+         * 
+         */
         public void updateOdo(){
         	double x = odo.getX();
         	double y = odo.getY();
@@ -137,13 +155,15 @@ public class LightLocalizer {
         	double position; 
         	
         	// if the robot is going along the y-direction, update the y-direction
-        	if (odo.getAng()==0 || odo.getAng() == 180){
+        	// also, update the angle
+        	if ((odo.getAng()<0-angleThreshold && odo.getAng()>0+angleThreshold) || (odo.getAng()<180-angleThreshold&& odo.getAng()>180+angleThreshold)){
         		line = x % 30.48; 
         		position = line*30.48;
         		odo.setPosition(new double [] {0.0, position , odo.getAng()}, new boolean [] {false, true, false});	
         	}
         	
         	// if the robot is going along the x-direction, update the x-direction
+        	// also, update the angle
         	else {
         		line = x % 30.48; 
         		position = line*30.48;
@@ -151,6 +171,7 @@ public class LightLocalizer {
         	}
         	
         }
+        
         /** 
          * 
          * @return the status of the robot's light localization. Returns true if the robot is localizing and false othewise
@@ -158,5 +179,6 @@ public class LightLocalizer {
         public boolean isLocalizing(){
                 return this.localizing;
         }
+        
         
 }
