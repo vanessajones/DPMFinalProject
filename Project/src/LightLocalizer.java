@@ -108,9 +108,9 @@ public class LightLocalizer {
                 else {
                         LCD.drawString("Not a line        ",0,1);
                 }
-                */
-        
+                
         }
+        
         
         /** Checks if the robot passes a line 
          * @param blue blue value read by the sensor 
