@@ -1,5 +1,4 @@
 import lejos.nxt.*;
-import lejos.nxt.LCD;
 
 /** Class that performs
  * 
@@ -15,8 +14,8 @@ public class LightLocalizer {
         private NXTRegulatedMotor rightMotor;
         private boolean localizing;
         private final double angleThreshold = 3;  		// test this
-        private final double sensorCorrection = 70;		// test this
-        private final double lightThreshold = 480;		// test this 
+        private final double sensorCorrection = 10;		// test this
+        private final double lightThreshold = 485;		// test this 
         
         /** Class constructor
          * 
@@ -55,36 +54,38 @@ public class LightLocalizer {
                 LCD.drawString(Double.toString(left),0,1);
                 LCD.drawString(Double.toString(right),0,2);
           
-                /*
+                
                 leftMotor.setSpeed(50);
                 rightMotor.setSpeed(50);
                 leftMotor.forward();
                 rightMotor.forward();
-                */
+                
                 
                 if (isLine(left, 1) && isLine(right, 2)){
                 	
-                		/* for testing only
-                        LCD.drawString("Both on the line!",0,1);
+             
+                       // LCD.drawString("Both on the line!",0,1);
                         
+                        /*
                         LCD.drawString(Double.toString(odo.getX()),0,1);
                         LCD.drawString(Double.toString(odo.getY()),0,2);
                         LCD.drawString(Double.toString(odo.getAng()),0,3);
-                        */
+                        
                        
                         updateOdo();
                         
-                        /* for testing only
+             
                         LCD.drawString(Double.toString(odo.getX()),0,1);
                         LCD.drawString(Double.toString(odo.getY()),0,2);
                         LCD.drawString(Double.toString(odo.getAng()),0,3);
-                        */
+                       */
+                        
                 }
                 
                 else if (isLine(left,1)) {
                        LCD.drawString("left one         ", 0, 1);
                         do {
-                        	leftMotor.stop();
+                        	leftMotor.setSpeed(10);
                         } while (!(isLine(cs2.getNormalizedLightValue(),2)));
                         
                         leftMotor.setSpeed(50);
@@ -97,19 +98,22 @@ public class LightLocalizer {
                 else if (isLine(right,2)) {
                         LCD.drawString("right one        !",0,1);
                         do {
-                        	leftMotor.stop();
+                        	rightMotor.setSpeed(10);
                         } while (!(isLine(cs1.getNormalizedLightValue(),1)));
                         leftMotor.setSpeed(50);
                         rightMotor.setSpeed(50);
                         leftMotor.forward();
                         rightMotor.forward();
                 }
-               
+              
                 else {
-                        LCD.drawString("Not a line        ",0,1);
+                	 try{ Thread.sleep(300);
+                     } catch (Exception e){}
+                       doLocalization();
                 }
                 
         }
+
         
         
         /** Checks if the robot passes a line 
@@ -156,7 +160,7 @@ public class LightLocalizer {
         	
         	// if the robot is going along the y-direction, update the y-direction
         	// also, update the angle
-        	if ((odo.getAng()<0-angleThreshold && odo.getAng()>0+angleThreshold) || (odo.getAng()<180-angleThreshold&& odo.getAng()>180+angleThreshold)){
+        	if ((odo.getAng()<90-angleThreshold && odo.getAng()>90+angleThreshold) || (odo.getAng()<270-angleThreshold&& odo.getAng()>270+angleThreshold)){
         		line = x % 30.48; 
         		position = line*30.48;
         		odo.setPosition(new double [] {0.0, position , odo.getAng()}, new boolean [] {false, true, false});	

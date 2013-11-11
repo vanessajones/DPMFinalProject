@@ -15,8 +15,8 @@ public class ObjectDetection {
 	
 	/** Constructor method to import the two ultrasonic sensors
 	 * 
-	 * @param us1 import the ultrasonic sensor located on the bottom of the robot
-	 * @param us2 import the ultrasonic sensor located at the top of the robot
+	 * @param us1 import the ultrasonic sensor located on the TOP of the robot
+	 * @param us2 import the ultrasonic sensor located at the BOTTOM of the robot
 	 */
 	public ObjectDetection(UltrasonicSensor us1, UltrasonicSensor us2){
 		
@@ -38,12 +38,14 @@ public class ObjectDetection {
 		
 		if (distanceUS2 < BLOCK_DISTANCE) {
 			for(int i = 0; i < samples; i++) {
-				if(getFilteredData(us1) < BLOCK_DISTANCE + 10) {
+				if(getFilteredData(us1) < BLOCK_DISTANCE) {
 					falseAlarm = true;
 				}
+				/*
 				if(getFilteredData(us2) > BLOCK_DISTANCE) {				
 					falseAlarm = true;
 				}
+				*/
 			}
 			if(!falseAlarm) {
 				return true;					

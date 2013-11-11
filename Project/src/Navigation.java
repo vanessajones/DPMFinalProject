@@ -27,10 +27,10 @@ public class Navigation {
 	private Odometer odometer;
 	private NXTRegulatedMotor leftMotor, rightMotor;
 //	private Bluetooth bt;
-//	private LightLocalizer liLocalizer;
+	private LightLocalizer liLocalizer;
 	private ObjectDetection objDetection;
 	
-	private final double RADIUS = 2.18;
+	private final double RADIUS = 2.2;
 	private final double WIDTH = 20;
 	private final double TILELENGTH = 30;
 	private final int ERRORMARGIN = 5;
@@ -45,8 +45,8 @@ public class Navigation {
 	private final int bottomWallBound;
 	private int[] restrictedAreaX;
 	private int[] restrictedAreaY;
-	private int[] dropzoneX;
-	private int[] dropzoneY;
+	private int[] dropzoneX = {30,60,30,60};
+	private int[] dropzoneY = {120,120,150,150};
 	
 	private int closestDropZonePtX;
 	private int closestDropZonePtY;
@@ -66,10 +66,10 @@ public class Navigation {
 	 * @param od imports ObjectDetection
 	 */
 	
-	public Navigation(Odometer odo, ObjectDetection od) {
+	public Navigation(Odometer odo, ObjectDetection od, LightLocalizer ls) {
 		this.odometer = odo;
 //		this.bt = bt;
-//		this.liLocalizer = ls;
+		this.liLocalizer = ls;
 		this.objDetection = od;
 		
 		this.leftMotor = Motor.A;
@@ -80,24 +80,26 @@ public class Navigation {
 		this.rightMotor.setAcceleration(ACCELERATION);
 		
 		// test code for milestone demo
-
+/*
 		int[] inputX = {120,150,120,150};
 		this.dropzoneX = new int[inputX.length];
 
 		int [] inputY = {120,120,150,150};
 		this.dropzoneY = new int[inputY.length];
 		
+		
 		for(int i = 0; i < dropzoneX.length; i++) {
 			dropzoneX[i] = inputX[i];
 			dropzoneY[i] = inputY[i];
 		}
+		*/
 		
 		leftWallBound = -25;
 		rightWallBound = 85;
 		topWallBound = 200;
 		bottomWallBound = -25;
 		
-		setSpeeds(SLOW,SLOW);
+		//setSpeeds(SLOW,SLOW);
 /*		
 		role = bt.getRole();
 		startingLocation = bt.getStartingLocation();
@@ -206,7 +208,7 @@ public class Navigation {
 	public boolean scanAheadForObstacle() {
 		double originalAngle = odometer.getAng();
 		
-		rotateBy(30,false);
+		rotateBy(15,false);
 		while(leftMotor.isMoving() || rightMotor.isMoving()) {
 			if(objDetection.isObstacle()) {
 				turnTo(originalAngle, false);
@@ -214,7 +216,7 @@ public class Navigation {
 			}
 		}
 		
-		rotateBy(-60,false);
+		rotateBy(-30,false);
 		while(leftMotor.isMoving() || rightMotor.isMoving()) {
 			if(objDetection.isObstacle()) {
 				turnTo(originalAngle, false);
@@ -331,8 +333,11 @@ public class Navigation {
 		setSpeeds(FAST,FAST);
 		travelBy((TILELENGTH - 5),true);
 		setSpeeds(SLOW,SLOW);
-		// replace following line with lightlocalizer code
 		travelBy(5,true);
+		//setSpeeds(SLOW,SLOW);
+		//liLocalizer.doLocalization();
+		// replace following line with lightlocalizer code
+		
 		
 		/*
 		ping lightsensors until one of the sensors finds a blackline, cut the motors and call 
