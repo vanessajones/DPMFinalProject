@@ -154,6 +154,7 @@ public class USLocalizer {
 		return distance;
 	}
 	
+
 	/** setter method to set the robot as localizing or not
 	 * 
 	 * @param isLocalizing boolean that indicates the status of localization. True if the robot is

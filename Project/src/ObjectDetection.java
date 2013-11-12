@@ -9,9 +9,12 @@ public class ObjectDetection {
 
 	private UltrasonicSensor us1;
 	private UltrasonicSensor us2;
-	private int samples = 20;
 	
+	private final int SAMPLES = 20;
+	private final int FALSE_NEGATIVE = 20;
 	private final int BLOCK_DISTANCE = 45;
+	
+	private int filterControl = 0;
 	
 	/** Constructor method to import the two ultrasonic sensors
 	 * 
@@ -37,7 +40,7 @@ public class ObjectDetection {
 		distanceUS2 = getFilteredData(us2);
 		
 		if (distanceUS2 < BLOCK_DISTANCE) {
-			for(int i = 0; i < samples; i++) {
+			for(int i = 0; i < SAMPLES; i++) {
 				if(getFilteredData(us1) < BLOCK_DISTANCE) {
 					falseAlarm = true;
 				}
@@ -88,4 +91,44 @@ public class ObjectDetection {
 		distance = us.getDistance();		
 		return distance;
 	}
+	
+	public int getFilteredData(){
+		
+		int distance;
+		
+		// ping the sensor
+		us2.ping();
+		
+		// wait for the ping to complete
+		try { Thread.sleep(50); } catch (InterruptedException e) {}
+		
+		// after 50ms get the distance and return it
+		distance = us2.getDistance();		
+		return distance;
+	}
+	
+	public int falseNeg() {
+		int distance;
+		int safeValue = 30;
+		
+		us2.ping();
+		
+		try { Thread.sleep(50); } catch (InterruptedException e) {}
+		
+		distance = us2.getDistance();	
+		
+		if(distance < 50) {
+			filterControl = 0;
+			return distance;
+		}
+		else if(distance >= 50 && filterControl < FALSE_NEGATIVE) {
+			return safeValue;
+		}
+		else {
+			return distance;
+		}
+		
+	}
+	
+	
 }

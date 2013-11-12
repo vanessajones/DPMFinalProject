@@ -7,12 +7,12 @@
 
 import lejos.nxt.Motor;
 import lejos.nxt.NXTRegulatedMotor;
+import lejos.nxt.Sound;
 import lejos.nxt.UltrasonicSensor;
 import lejos.nxt.comm.Bluetooth;
 
 import java.lang.Math;
 
-import lejos.nxt.*;
 
 /** Class that houses the commands related to navigation.
  * 
@@ -170,7 +170,7 @@ public class Navigation {
 				
 				foundBlock = scanForBlue();
 				if(foundBlock) {
-					goGrabBlock(odometer.getX(), odometer.getY());
+					goGrabBlock(odometer.getX(), odometer.getY(), odometer.getAng(), objDetection.getFilteredData());
 					break;
 				}
 
@@ -183,7 +183,7 @@ public class Navigation {
 				turnLeft(false);
 				foundBlock = scanForBlue();
 				if(foundBlock) {
-					goGrabBlock(odometer.getX(), odometer.getY());
+					goGrabBlock(odometer.getX(), odometer.getY(), odometer.getAng(), objDetection.getFilteredData());
 					break;
 				}
 				pickSafeRoute();
@@ -301,7 +301,6 @@ public class Navigation {
 			destX = (int) ((int)((odometer.getX() + ERRORMARGIN) / TILELENGTH)*TILELENGTH);
 			destY = (int) (((int)((odometer.getY() + ERRORMARGIN) / TILELENGTH) - 1)*TILELENGTH);
 		}	
-		System.out.println(heading + "," + destX + ", " + destY);
 	}
 	
 	/**
@@ -353,10 +352,38 @@ public class Navigation {
 	 * Moves the robot to the detected blue block, robot will travel to inputs after it's grabbed the block
 	 */
 	//INCOMPLETE
-	public void goGrabBlock(double x, double y) {
-		travelBy(20,true);
-		travelBy(-20,true);
-		rotateBy(135,true);
+	public void goGrabBlock(double x, double y, double angle, int usDist) {
+		int angleOne = (int)angle;
+		int angleTwo;
+		int angleTurnTo;
+		
+		Sound.buzz();
+		Sound.buzz();
+		
+		setSpeeds(SLOW,SLOW);
+		if(justWentStraight) {
+			turnRight(false);
+		}
+		else {
+			turnLeft(false);
+		}
+		while(leftMotor.isMoving() || rightMotor.isMoving() ) {
+			if(objDetection.falseNeg() >= 50) {
+				setSpeeds(0,0);
+				Sound.buzz();
+				Sound.buzz();
+			}
+		}
+		
+		angleTwo = (int)odometer.getAng();
+		
+		angleTurnTo = (angleOne + angleTwo)/2;
+		
+		setSpeeds(SLOW,SLOW);
+		turnTo(angleTurnTo,false);
+		travelBy(usDist,true);
+		// grab block
+		travelTo(x,y);
 	}
 	
 	/**
@@ -445,7 +472,7 @@ public class Navigation {
 			turnTo(225, false);
 		}
 		
-		travelBy(10, false);
+		travelBy(14, true);
 		travelTo(closestDropZonePtX, closestDropZonePtY);
 		rotateBy(45, true);
 	}
