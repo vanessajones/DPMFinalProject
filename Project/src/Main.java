@@ -20,28 +20,23 @@ public class Main {
         // code for testing the object detection
         public static void main(String[] args) {
                 
-                        UltrasonicSensor us1 = new UltrasonicSensor(SensorPort.S1);
-                        UltrasonicSensor us2 = new UltrasonicSensor(SensorPort.S2);
-                        ColorSensor cs1 = new ColorSensor(SensorPort.S3);
-                        ColorSensor cs2 = new ColorSensor(SensorPort.S4);
+               UltrasonicSensor us1 = new UltrasonicSensor(SensorPort.S1);
+               UltrasonicSensor us2 = new UltrasonicSensor(SensorPort.S2);
+               ColorSensor cs1 = new ColorSensor(SensorPort.S3);
+               ColorSensor cs2 = new ColorSensor(SensorPort.S4);
                         
-                        Odometer odo = new Odometer(Motor.A, Motor.B, 30, true);
-                        ObjectDetection objdet = new ObjectDetection(us1, us2);
-                        LightLocalizer ls = new LightLocalizer(cs1,cs2, leftMotor, rightMotor, odo);
-                        Navigation navi = new Navigation(odo, objdet, ls);
+               Odometer odo = new Odometer(Motor.A, Motor.B, 30, true);
+               ObjectDetection objdet = new ObjectDetection(us1, us2);
+               LightLocalizer ls = new LightLocalizer(cs1,cs2, leftMotor, rightMotor, odo);
+               Navigation navi = new Navigation(odo, objdet, ls);
                         
-                        ObjectDetection od= new ObjectDetection(us1, us2);
-                        try{ Thread.sleep(10000);
-                        } catch (Exception e){}
-                        
-                        navi.travelTo(0, 23);
-                        ls.doLocalization();
-                        Sound.beep();
-                        navi.travelTo(0,55);
-                        ls.doLocalization();
-                        
-                        
+               ObjectDetection od= new ObjectDetection(us1, us2);
+   
+               while(true) {
+            	   navi.goFindBlock();
+            	   navi.bringToDropZone();
+               }
                         
 
-                }
+       }
 }
