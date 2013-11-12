@@ -29,6 +29,7 @@ public class Navigation {
 //	private Bluetooth bt;
 	private LightLocalizer liLocalizer;
 	private ObjectDetection objDetection;
+	private HandleBlock handle;
 	
 	private final double RADIUS = 2.2;
 	private final double WIDTH = 20;
@@ -66,11 +67,12 @@ public class Navigation {
 	 * @param od imports ObjectDetection
 	 */
 	
-	public Navigation(Odometer odo, ObjectDetection od, LightLocalizer ls) {
+	public Navigation(Odometer odo, ObjectDetection od, LightLocalizer ls, HandleBlock hb) {
 		this.odometer = odo;
 //		this.bt = bt;
 		this.liLocalizer = ls;
 		this.objDetection = od;
+		this.handle = hb;
 		
 		this.leftMotor = Motor.A;
 		this.rightMotor = Motor.B;
@@ -164,14 +166,21 @@ public class Navigation {
 	 * 
 	 */
 	public void goFindBlock() {
+		double[] coords = new double[3];
 		while(!foundBlock) {
 			if(justWentStraight) {
 				turnRight(false);
 				
-				foundBlock = scanForBlue();
-				if(foundBlock) {
-					goGrabBlock(odometer.getX(), odometer.getY(), odometer.getAng(), objDetection.getFilteredData());
-					break;
+				while(leftMotor.isMoving() || rightMotor.isMoving()) {
+					try {
+						coords = objDetection.findObject();
+						leftMotor.stop();
+						rightMotor.stop();
+						foundBlock = true;
+						goGrabBlock(coords);
+					} catch (ObjectNotFoundException e) {
+						// no blue block found, keep going
+					}
 				}
 
 				pickSafeRoute();
@@ -181,28 +190,55 @@ public class Navigation {
 			}
 			else {
 				turnLeft(false);
-				foundBlock = scanForBlue();
-				if(foundBlock) {
-					goGrabBlock(odometer.getX(), odometer.getY(), odometer.getAng(), objDetection.getFilteredData());
-					break;
+				
+				while(leftMotor.isMoving() || rightMotor.isMoving()) {
+					try {
+						coords = objDetection.findObject();
+						leftMotor.stop();
+						rightMotor.stop();
+						foundBlock = true;
+						goGrabBlock(coords);
+					} catch (ObjectNotFoundException e) {
+						// no blue block found, keep going
+					}
 				}
+				
 				pickSafeRoute();
 				traverseATile();
 				justWentStraight = true;
 			}
 		}
-	}
-	
-	public boolean scanForBlue() {
-		boolean found = false;
-		while(leftMotor.isMoving() || rightMotor.isMoving()) {
-			if(objDetection.isBlue()) {
-				found = true;
-				leftMotor.stop();
-				rightMotor.stop();
-			}
-		}
-		return found;
+		
+		/* while(!foundBlock) {
+                        if(justWentStraight) {
+                                turnRight(false);
+                                
+                                foundBlock = scanForBlue();
+                                if(foundBlock) {
+                                        goGrabBlock(odometer.getX(), odometer.getY(), odometer.getAng(), objDetection.getFilteredData());
+                                        break;
+                                }
+
+                                pickSafeRoute();
+                                traverseATile();
+                                justWentStraight = false;
+                                
+                        }
+                        else {
+                                turnLeft(false);
+                                foundBlock = scanForBlue();
+                                if(foundBlock) {
+                                        goGrabBlock(odometer.getX(), odometer.getY(), odometer.getAng(), objDetection.getFilteredData());
+                                        break;
+                                }
+                                pickSafeRoute();
+                                traverseATile();
+                                justWentStraight = true;
+                        }
+                }
+		 * 
+		 * 
+		 */
 	}
 	
 	public boolean scanAheadForObstacle() {
@@ -352,8 +388,14 @@ public class Navigation {
 	 * Moves the robot to the detected blue block, robot will travel to inputs after it's grabbed the block
 	 */
 	//INCOMPLETE
-	public void goGrabBlock(double x, double y, double angle, int usDist) {
-		int angleOne = (int)angle;
+	public void goGrabBlock(double[] coords) {
+		double[] currentPos = new double {odometer.getX(),odometer.getY(),odometer.getAng()};
+		travelTo(coords[0],coords[1]);
+		handle.capture();
+		handle.lift();
+		travelTo(currentPos[0],currentPos[1]);
+		turnTo(currentPos[2],false);
+		/*int angleOne = (int)angle;
 		int angleTwo;
 		int angleTurnTo;
 		
@@ -383,7 +425,7 @@ public class Navigation {
 		turnTo(angleTurnTo,false);
 		travelBy(usDist,true);
 		// grab block
-		travelTo(x,y);
+		travelTo(x,y);*/
 	}
 	
 	/**

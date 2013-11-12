@@ -5,7 +5,9 @@ import lejos.nxt.*;
  * @author Vanessa Jones, Christopher Petryna, Simon Lei, Taylor Dotsikas, Muhammad Hannan and Caroline Wu
  * @version  1.0 November 2 2013
  */
-public class ObjectDetection {
+public class ObjectDetection extends Exception {
+	
+	class ObjectNotFoundException extends Exception{};
 
 	private UltrasonicSensor us1;
 	private UltrasonicSensor us2;
@@ -16,16 +18,51 @@ public class ObjectDetection {
 	
 	private int filterControl = 0;
 	
+	private Odometer odometer;
+	
 	/** Constructor method to import the two ultrasonic sensors
 	 * 
 	 * @param us1 import the ultrasonic sensor located on the TOP of the robot
 	 * @param us2 import the ultrasonic sensor located at the BOTTOM of the robot
+	 * @param odo import the odometer that is also used by the navigation class
 	 */
-	public ObjectDetection(UltrasonicSensor us1, UltrasonicSensor us2){
+	public ObjectDetection(UltrasonicSensor us1, UltrasonicSensor us2, Odometer odo){
 		
 		this.us1 = us1;
 		this.us2 = us2;
 		
+		this.odometer = odo;
+		
+	}
+	
+	/** Finds location of a styrofoam block and gives the coordinates for the block
+	 * 
+	 * @return the x and y coordinates of a styrofoam block
+	 * @exception ObjectNotFoundException if no styrofoam blocks are found after one run-through
+	 */
+	public double[] findObject() throws ObjectNotFoundException{
+		double[] coords = new double[3];
+		
+		// check if there is a blue block ahead
+		boolean styrofoam = isBlue();
+		
+		if (styrofoam) {
+			// import x, y, and theta from odometer
+			coords = odometer.getPosition();
+			
+			// find x and y position using distance and angle
+			int distance = getFilteredData(us1);
+			coords[0] += (double) distance * Math.cos(Math.toRadians(coords[2]));
+			coords[1] += (double) distance * Math.sin(Math.toRadians(coords[2]));
+		}
+		
+		// otherwise throw ObjectNotFoundException
+		else {
+			throw new ObjectNotFoundException();
+		}
+		
+		// return the updated coordinates to navigate to
+		return coords;
 	}
 	
 	/** Determines the identity of an unknown block
@@ -39,18 +76,15 @@ public class ObjectDetection {
 		
 		distanceUS2 = getFilteredData(us2);
 		
+		// if the bottom sensor detects something sample the top sensor a few times to see if it's a false alarm
 		if (distanceUS2 < BLOCK_DISTANCE) {
 			for(int i = 0; i < SAMPLES; i++) {
 				if(getFilteredData(us1) < BLOCK_DISTANCE) {
 					falseAlarm = true;
 				}
-				/*
-				if(getFilteredData(us2) > BLOCK_DISTANCE) {				
-					falseAlarm = true;
-				}
-				*/
 			}
-			if(!falseAlarm) {
+			// if not and the bottom sensor can still detect the block then it must be real
+			if(!falseAlarm && (getFilteredData(us2) < BLOCK_DISTANCE)) {
 				return true;					
 			}
 		}
@@ -58,6 +92,10 @@ public class ObjectDetection {
 		return false;
 	}
 	
+	/** Determines if there is an obstacle ahead
+	 * 
+	 * @return true if there is an obstacle, false if otherwise
+	 */
 	public boolean isObstacle() {
 		
 		int distance;

@@ -28,13 +28,15 @@ public class Main {
                Odometer odo = new Odometer(Motor.A, Motor.B, 30, true);
                ObjectDetection objdet = new ObjectDetection(us1, us2);
                LightLocalizer ls = new LightLocalizer(cs1,cs2, leftMotor, rightMotor, odo);
-               Navigation navi = new Navigation(odo, objdet, ls);
+               HandleBlock handle = new HandleBlock(lifting);
+               Navigation navi = new Navigation(odo, objdet, ls, handle);
                         
                ObjectDetection od= new ObjectDetection(us1, us2);
    
                while(true) {
             	   navi.goFindBlock();
             	   navi.bringToDropZone();
+            	   handle.lower();
                }
                         
 
