@@ -17,7 +17,7 @@ public class USLocalizer {
 	private double ORI_ANGLE;
 	private boolean LOCALIZING;
 
-	public static int ROTATION_SPEED = 80;
+	public static int ROTATION_SPEED = 150;
 	public static final double LEFT_RADIUS = 2.15;
 	public static final double RIGHT_RADIUS = 2.15;
 	public static final double WIDTH = 15.8;
@@ -37,7 +37,7 @@ public class USLocalizer {
 		us.off();
 	}
 	
-	/** doLocalization method that makes the robot perform Rising Edge localization to correct its heading
+	/** doLocalization method that makes the robot perform Falling Edge localization to correct its heading
 	 * and its position
 	 */
 	public void doLocalization() {

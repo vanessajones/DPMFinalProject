@@ -12,7 +12,7 @@ public class ObjectDetection extends Exception {
 	private UltrasonicSensor us1;
 	private UltrasonicSensor us2;
 	
-	private final int SAMPLES = 20;
+	private final int SAMPLES = 5;
 	private final int FALSE_NEGATIVE = 20;
 	private final int BLOCK_DISTANCE = 45;
 	
@@ -51,7 +51,7 @@ public class ObjectDetection extends Exception {
 			coords = odometer.getPosition();
 			
 			// find x and y position using distance and angle
-			int distance = getFilteredData(us1);
+			int distance = getFilteredData(us2);
 			coords[0] += (double) distance * Math.cos(Math.toRadians(coords[2]));
 			coords[1] += (double) distance * Math.sin(Math.toRadians(coords[2]));
 		}

@@ -26,18 +26,20 @@ public class Main {
                ColorSensor cs2 = new ColorSensor(SensorPort.S4);
                         
                Odometer odo = new Odometer(Motor.A, Motor.B, 30, true);
-               ObjectDetection objdet = new ObjectDetection(us1, us2);
+               ObjectDetection objdet = new ObjectDetection(us1, us2, odo);
+               USLocalizer us = new USLocalizer(odo, us1);
+               us.doLocalization();
+              
                LightLocalizer ls = new LightLocalizer(cs1,cs2, leftMotor, rightMotor, odo);
                HandleBlock handle = new HandleBlock(lifting);
                Navigation navi = new Navigation(odo, objdet, ls, handle);
-                        
-               ObjectDetection od= new ObjectDetection(us1, us2);
-   
+               navi.turnTo(90,true);
+               /*
                while(true) {
             	   navi.goFindBlock();
-            	   navi.bringToDropZone();
+            	   navi.travelTo(0,0);
             	   handle.lower();
-               }
+               }*/
                         
 
        }

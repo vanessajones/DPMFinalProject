@@ -5,6 +5,7 @@
  */
 
 
+import lejos.nxt.LCD;
 import lejos.nxt.Motor;
 import lejos.nxt.NXTRegulatedMotor;
 import lejos.nxt.Sound;
@@ -174,11 +175,12 @@ public class Navigation {
 				while(leftMotor.isMoving() || rightMotor.isMoving()) {
 					try {
 						coords = objDetection.findObject();
+						Sound.beep();
 						leftMotor.stop();
 						rightMotor.stop();
 						foundBlock = true;
 						goGrabBlock(coords);
-					} catch (ObjectNotFoundException e) {
+					} catch (Exception e) {
 						// no blue block found, keep going
 					}
 				}
@@ -194,11 +196,12 @@ public class Navigation {
 				while(leftMotor.isMoving() || rightMotor.isMoving()) {
 					try {
 						coords = objDetection.findObject();
+						Sound.beep();
 						leftMotor.stop();
 						rightMotor.stop();
 						foundBlock = true;
 						goGrabBlock(coords);
-					} catch (ObjectNotFoundException e) {
+					} catch (Exception e) {
 						// no blue block found, keep going
 					}
 				}
@@ -389,12 +392,16 @@ public class Navigation {
 	 */
 	//INCOMPLETE
 	public void goGrabBlock(double[] coords) {
-		double[] currentPos = new double {odometer.getX(),odometer.getY(),odometer.getAng()};
-		travelTo(coords[0],coords[1]);
+		double[] currentPos = new double[] {odometer.getX(),odometer.getY(),odometer.getAng()};
+		LCD.drawInt((int)coords[0]*100, 0, 0);
+		LCD.drawInt((int)coords[1]*100, 0, 1);
+		while (objDetection.getFilteredData()!=5){
+			travelTo(coords[0],coords[1]);
+		}
 		handle.capture();
 		handle.lift();
 		travelTo(currentPos[0],currentPos[1]);
-		turnTo(currentPos[2],false);
+		turnTo(currentPos[2],true);
 		/*int angleOne = (int)angle;
 		int angleTwo;
 		int angleTurnTo;
