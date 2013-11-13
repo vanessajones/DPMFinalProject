@@ -13,7 +13,7 @@ public class LightLocalizer {
         private NXTRegulatedMotor leftMotor;
         private NXTRegulatedMotor rightMotor;
         private boolean localizing;
-        private final double angleThreshold = 3;  		// test this
+        private final double angleThreshold = 40;  		// test this
         private final double sensorCorrection = 10;		// test this
         private final double lightThreshold = 485;		// test this 
         
@@ -55,8 +55,8 @@ public class LightLocalizer {
                 LCD.drawString(Double.toString(right),0,2);
           
                 
-                leftMotor.setSpeed(50);
-                rightMotor.setSpeed(50);
+                leftMotor.setSpeed(70);
+                rightMotor.setSpeed(70);
                 leftMotor.forward();
                 rightMotor.forward();
                 
@@ -64,26 +64,15 @@ public class LightLocalizer {
                 if (isLine(left, 1) && isLine(right, 2)){
                 	
              
-                       // LCD.drawString("Both on the line!",0,1);
-                        
-                        /*
-                        LCD.drawString(Double.toString(odo.getX()),0,1);
-                        LCD.drawString(Double.toString(odo.getY()),0,2);
-                        LCD.drawString(Double.toString(odo.getAng()),0,3);
-                        
+
                        
                         updateOdo();
                         
-             
-                        LCD.drawString(Double.toString(odo.getX()),0,1);
-                        LCD.drawString(Double.toString(odo.getY()),0,2);
-                        LCD.drawString(Double.toString(odo.getAng()),0,3);
-                       */
                         
                 }
                 
                 else if (isLine(left,1)) {
-                       LCD.drawString("left one         ", 0, 1);
+                       
                         do {
                         	leftMotor.setSpeed(10);
                         } while (!(isLine(cs2.getNormalizedLightValue(),2)));
@@ -93,10 +82,11 @@ public class LightLocalizer {
                         leftMotor.forward();
                         rightMotor.forward();
                         
+                        updateOdo();
                 }
                 
                 else if (isLine(right,2)) {
-                        LCD.drawString("right one        !",0,1);
+                        
                         do {
                         	rightMotor.setSpeed(10);
                         } while (!(isLine(cs1.getNormalizedLightValue(),1)));
@@ -104,6 +94,8 @@ public class LightLocalizer {
                         rightMotor.setSpeed(50);
                         leftMotor.forward();
                         rightMotor.forward();
+                     
+                        updateOdo();
                 }
               
                 else {
@@ -111,6 +103,9 @@ public class LightLocalizer {
                      } catch (Exception e){}
                        doLocalization();
                 }
+                
+             //   LCD.drawString(Double.toString(odo.getX()), 0, 1);
+            //    LCD.drawString(Double.toString(odo.getY()), 0, 2);
                 
         }
 
@@ -160,18 +155,26 @@ public class LightLocalizer {
         	
         	// if the robot is going along the y-direction, update the y-direction
         	// also, update the angle
-        	if ((odo.getAng()<90-angleThreshold && odo.getAng()>90+angleThreshold) || (odo.getAng()<270-angleThreshold&& odo.getAng()>270+angleThreshold)){
-        		line = x % 30.48; 
-        		position = line*30.48;
-        		odo.setPosition(new double [] {0.0, position , odo.getAng()}, new boolean [] {false, true, false});	
+        	if ((odo.getAng()>90-angleThreshold && odo.getAng()<90+angleThreshold)){
+        		line = (int)((y + 5) / 30); 
+        		position = line*30;
+        		odo.setPosition(new double [] {0.0, position , 90}, new boolean [] {false, true, true});	
         	}
-        	
-        	// if the robot is going along the x-direction, update the x-direction
+        	else if (odo.getAng()>270-angleThreshold && odo.getAng()<270+angleThreshold){
+        		line = (int)((y + 5) / 30); 
+        		position = line*30;
+        		odo.setPosition(new double [] {0.0, position , 270}, new boolean [] {false, true, true});	
+        	}
         	// also, update the angle
+        	else if (odo.getAng()>180-angleThreshold && odo.getAng()<180+angleThreshold) {
+        		line = (int)((x + 5) / 30); 
+        		position = line*30;
+        		odo.setPosition(new double [] {position, 0.0 , 180}, new boolean [] {true, false, true});	
+        	}
         	else {
-        		line = x % 30.48; 
-        		position = line*30.48;
-        		odo.setPosition(new double [] {position, 0.0 , odo.getAng()}, new boolean [] {true, false, false});	
+        		line = (int)((x + 5) / 30); 
+        		position = line*30;
+        		odo.setPosition(new double [] {position, 0.0 , 0}, new boolean [] {true, false, true});	
         	}
         	
         }

@@ -35,7 +35,7 @@ public class Navigation {
 	private final double RADIUS = 2.2;
 	private final double WIDTH = 20;
 	private final double TILELENGTH = 30;
-	private final int ERRORMARGIN = 5;
+	private final int ERRORMARGIN = 10;
 	
 	private boolean hasBlock = false;
 	private boolean foundBlock = false;
@@ -48,7 +48,7 @@ public class Navigation {
 	private int[] restrictedAreaX;
 	private int[] restrictedAreaY;
 	private int[] dropzoneX = {30,60,30,60};
-	private int[] dropzoneY = {120,120,150,150};
+	private int[] dropzoneY = {60,60,90,90};
 	
 	private int closestDropZonePtX;
 	private int closestDropZonePtY;
@@ -176,10 +176,10 @@ public class Navigation {
 					try {
 						coords = objDetection.findObject();
 						Sound.beep();
-						leftMotor.stop();
-						rightMotor.stop();
 						foundBlock = true;
 						goGrabBlock(coords);
+						leftMotor.stop();
+						rightMotor.stop();
 					} catch (Exception e) {
 						// no blue block found, keep going
 					}
@@ -197,10 +197,10 @@ public class Navigation {
 					try {
 						coords = objDetection.findObject();
 						Sound.beep();
-						leftMotor.stop();
-						rightMotor.stop();
 						foundBlock = true;
 						goGrabBlock(coords);
+						leftMotor.stop();
+						rightMotor.stop();
 					} catch (Exception e) {
 						// no blue block found, keep going
 					}
@@ -209,6 +209,7 @@ public class Navigation {
 				pickSafeRoute();
 				traverseATile();
 				justWentStraight = true;
+				
 			}
 		}
 		
@@ -370,8 +371,7 @@ public class Navigation {
 	// cover most of the tile quickly, then slow down for light localizer
 		setSpeeds(FAST,FAST);
 		travelBy((TILELENGTH - 5),true);
-		setSpeeds(SLOW,SLOW);
-		travelBy(5,true);
+		liLocalizer.doLocalization();
 		//setSpeeds(SLOW,SLOW);
 		//liLocalizer.doLocalization();
 		// replace following line with lightlocalizer code
@@ -393,15 +393,14 @@ public class Navigation {
 	//INCOMPLETE
 	public void goGrabBlock(double[] coords) {
 		double[] currentPos = new double[] {odometer.getX(),odometer.getY(),odometer.getAng()};
-		LCD.drawInt((int)coords[0]*100, 0, 0);
-		LCD.drawInt((int)coords[1]*100, 0, 1);
-		while (objDetection.getFilteredData()!=5){
+		//LCD.drawInt((int)coords[0]*100, 0, 0);
+		//LCD.drawInt((int)coords[1]*100, 0, 1);
+	//	while (objDetection.getFilteredData()!=5){
 			travelTo(coords[0],coords[1]);
-		}
+	//	}
 		handle.capture();
-		handle.lift();
 		travelTo(currentPos[0],currentPos[1]);
-		turnTo(currentPos[2],true);
+		turnTo(90,true);
 		/*int angleOne = (int)angle;
 		int angleTwo;
 		int angleTurnTo;
@@ -458,6 +457,10 @@ public class Navigation {
 				bestPath = pathLength;
 			}
 		}
+        LCD.drawString(Double.toString(closestDropZonePtX), 0, 1);
+        LCD.drawString(Double.toString(closestDropZonePtY), 0, 2);
+        LCD.drawString(Double.toString(numOfHorizontalMoves), 0, 3);
+        LCD.drawString(Double.toString(numOfVerticalMoves), 0, 4);       
 	}
 	
 	/**
@@ -492,6 +495,9 @@ public class Navigation {
 			// call obstacle detection, if object in way, change safe to false
 			getNextLineIntersection();
 			order = isBoundary(destX,destY);
+			if(!scanAheadForObstacle()) {
+				isSafe = false;
+			}
 			if(order != 0) {
 				isSafe = false;
 			}
@@ -505,25 +511,38 @@ public class Navigation {
 				getShortestPathToDropZone();
 				
 			}
+
+		}
+		LCD.drawString(Double.toString(odometer.getAng()), 0, 5);
+		// bad code, replace later
+		if(closestDropZonePtX == dropzoneX[0] && closestDropZonePtY == dropzoneY[0]) {
+			Sound.beepSequence();
+			rotateBy(45,true);
+			//turnTo(45,false);
+		
 		}
 		
-		// bad code, replace later
-		if(closestDropZonePtX == dropzoneX[0]) {
-			turnTo(45, false);
-		}
-		else if(closestDropZonePtX == dropzoneX[1]) {
+		else if(closestDropZonePtX == dropzoneX[1] && closestDropZonePtY == dropzoneY[1]) {
 			turnTo(135, false);
 		}
-		else if(closestDropZonePtX == dropzoneX[2]) {
+		else if(closestDropZonePtX == dropzoneX[2] && closestDropZonePtY == dropzoneY[2]) {
 			turnTo(315, false);
 		}
 		else {
 			turnTo(225, false);
 		}
 		
-		travelBy(14, true);
-		travelTo(closestDropZonePtX, closestDropZonePtY);
-		rotateBy(45, true);
+		setSpeeds(SLOW,SLOW);
+		handle.lift();
+		travelBy(7, true);
+		handle.lower();
+		//rotateBy(45, true);
+		travelBy(-14,true);
+		handle.lift();
+		travelBy(7,true);
+		rotateBy(135,true);
+		handle.lower();
+		foundBlock= false;
 	}
 	
 	/**
@@ -549,6 +568,7 @@ public class Navigation {
 		int angle;
 		int originalHeading;
 		boolean safe = false;
+		Sound.buzz();
 		
 		if(heading.equals("north") || heading.equals("south")) {
 			if(numOfHorizontalMoves > 0) {

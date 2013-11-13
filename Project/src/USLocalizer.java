@@ -72,11 +72,10 @@ public class USLocalizer {
 		// update the odometer position 
 		odo.setPosition(new double [] {0.0, 0.0, odo.getAng() + ORI_ANGLE}, new boolean [] {true, true, true});	
 	
+
+		LCD.drawString(Double.toString(ORI_ANGLE+odo.getAng()),0,6);
 		// orient at angle 90
-		Motor.A.rotate(convertAngle(LEFT_RADIUS, WIDTH, (90 + (360 - odo.getAng()) % 360)), true);
-		Motor.B.rotate(-convertAngle(RIGHT_RADIUS, WIDTH, (90 + (360 - odo.getAng()) % 360)), false);				
-		Motor.A.stop();
-		Motor.B.stop();
+	
 		
 	/* 	
 		// update the odometer's position according to the starting position

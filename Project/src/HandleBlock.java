@@ -7,7 +7,7 @@
 		 */
 		public class HandleBlock {
 		
-			private final int CAPTURE_DEGREES = -150; // tentative value, must test it
+			private final int CAPTURE_DEGREES = -200; // tentative value, must test it
 			private final int LIFT_DEGREES = -450; // tentative value, must test it
 			private final int LOWER_DEGREES = 0;
 			private final int RELEASE_DEGREES = 20;
