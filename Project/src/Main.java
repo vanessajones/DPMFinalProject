@@ -5,6 +5,9 @@ import lejos.nxt.Sound;
 import lejos.nxt.NXTRegulatedMotor;
 import lejos.nxt.SensorPort;
 import lejos.nxt.UltrasonicSensor;
+import lejos.nxt.LCD;
+import lejos.nxt.comm.*;
+
 
 /** Main class to run the code 
  * 
@@ -32,15 +35,25 @@ public class Main {
                LightLocalizer ls = new LightLocalizer(cs1,cs2, leftMotor, rightMotor, odo);
                HandleBlock handle = new HandleBlock(lifting);
                Navigation navi = new Navigation(odo, objdet, ls, handle);
-               us.doLocalization();
-               navi.turnTo(90, true);
-               
-               while(true) {
+/*               
+               BluetoothConnection conn = new BluetoothConnection();
+               Transmission t = conn.getTransmission();
+               if (t == null) {
+       				LCD.drawString("Failed to read transmission", 0, 5);
+       			} else {
+  */     		
+       				us.doLocalization();
+       				navi.turnTo(0,false);
+       				ls.doLocalization();
+       				navi.turnTo(90,false);
+       				ls.doLocalization();
+          
+     //          while(true) {
             	   navi.goFindBlock();
             	   navi.bringToDropZone();
-              
-               }    
-               
+            	   while(true);
+      //         }    
+       	//	}
 
        }
 }

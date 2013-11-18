@@ -44,15 +44,15 @@ public class LightLocalizer {
         /** Performs light localization and corrects odometer
          */
         public void doLocalization(){
-                LCD.refresh();
+ //               LCD.refresh();
                 
                 localizing = true;
                 
                 double left = cs1.getNormalizedLightValue();
                 double right =  cs2.getNormalizedLightValue();
                 
-                LCD.drawString(Double.toString(left),0,1);
-                LCD.drawString(Double.toString(right),0,2);
+//                LCD.drawString(Double.toString(left),0,1);
+//                LCD.drawString(Double.toString(right),0,2);
           
                 
                 leftMotor.setSpeed(70);

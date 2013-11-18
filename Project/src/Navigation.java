@@ -22,7 +22,7 @@ import java.lang.Math;
  */
 
 public class Navigation {
-	final static int FAST = 200, SLOW = 140, ACCELERATION = 4000;
+	final static int VERY_FAST = 250, FAST = 200, SLOW = 140, ACCELERATION = 4000;
 	final static double DEG_ERR = 3.0, CM_ERR = 1.0;
 	
 	private Odometer odometer;
@@ -47,8 +47,9 @@ public class Navigation {
 	private final int bottomWallBound;
 	private int[] restrictedAreaX;
 	private int[] restrictedAreaY;
-	private int[] dropzoneX = {30,60,30,60};
-	private int[] dropzoneY = {60,60,90,90};
+	
+	private int[] dropzoneX = {120,150,120,150};
+	private int[] dropzoneY = {120,120,150,150};
 	
 	private int closestDropZonePtX;
 	private int closestDropZonePtY;
@@ -98,8 +99,8 @@ public class Navigation {
 		*/
 		
 		leftWallBound = -25;
-		rightWallBound = 85;
-		topWallBound = 200;
+		rightWallBound = 205;
+		topWallBound = 205;
 		bottomWallBound = -25;
 		
 		//setSpeeds(SLOW,SLOW);
@@ -184,12 +185,11 @@ public class Navigation {
 						// no blue block found, keep going
 					}
 				}
-
-				pickSafeRoute();
+				pickSafeRoute();				
 				traverseATile();
-				justWentStraight = false;
-				
+
 			}
+			
 			else {
 				turnLeft(false);
 				
@@ -205,44 +205,12 @@ public class Navigation {
 						// no blue block found, keep going
 					}
 				}
-				
 				pickSafeRoute();
-				traverseATile();
-				justWentStraight = true;
-				
+				traverseATile();	
+
 			}
 		}
 		
-		/* while(!foundBlock) {
-                        if(justWentStraight) {
-                                turnRight(false);
-                                
-                                foundBlock = scanForBlue();
-                                if(foundBlock) {
-                                        goGrabBlock(odometer.getX(), odometer.getY(), odometer.getAng(), objDetection.getFilteredData());
-                                        break;
-                                }
-
-                                pickSafeRoute();
-                                traverseATile();
-                                justWentStraight = false;
-                                
-                        }
-                        else {
-                                turnLeft(false);
-                                foundBlock = scanForBlue();
-                                if(foundBlock) {
-                                        goGrabBlock(odometer.getX(), odometer.getY(), odometer.getAng(), objDetection.getFilteredData());
-                                        break;
-                                }
-                                pickSafeRoute();
-                                traverseATile();
-                                justWentStraight = true;
-                        }
-                }
-		 * 
-		 * 
-		 */
 	}
 	
 	public boolean scanAheadForObstacle() {
@@ -273,48 +241,57 @@ public class Navigation {
 	 */
 
 	public void pickSafeRoute() {
-		boolean notSafe = true;
+		boolean notSafe;
 		int order;
 		
-		while(notSafe) {
-			getNextLineIntersection();
-		    order = isBoundary(destX,destY);
+		getNextLineIntersection();
+	    order = isBoundary(destX,destY);
+	    
+	    if(order == 0) {
+	    	if(scanAheadForObstacle()) {
+	    		justWentStraight = !justWentStraight;
+	    	}
+	    }
+		
+	    else {
+	    	notSafe = true;
+	    	while(notSafe) {
+	    		getNextLineIntersection();
+	    		order = isBoundary(destX,destY);
 		    
-		    // if its not a boundary or wall
-		    if(order == 0) {
+	    		// if its not a boundary or wall
+	    		if(order == 0) {
 		    	
-		    	// check if obstacle in way
-			    if(scanAheadForObstacle()) {
-			    	notSafe = false;
-			    }
-			    
-			    else { 
-			        if(justWentStraight) {
-				        turnLeft(true);
-				    }
-				    else {
-				        turnRight(true);
-				    }			    	
-			    }
-		    }
+	    			// check if obstacle in way
+	    			if(scanAheadForObstacle()) {
+	    				notSafe = false;
+	    			}
+	    			else { 
+	    				if(justWentStraight) {
+	    					turnLeft(true);
+	    				}
+	    				else {
+	    					turnRight(true);
+	    				}			    	
+	    			}
+	    		}
 		    
-		    // if its a wall
-		    else if(order == 1) {
-		        rotateBy(180,true);
-		        justWentStraight = false;
-
-		    }
+	    		// if its a wall
+	    		else if(order == 1) {
+	    			rotateBy(180,true);
+	    			justWentStraight = false;
+	    		}
 		    
-		    //if its a boundary
-		    else {
-		        if(justWentStraight) {
-		            turnLeft(true);
-		        }
-		        else {
-		            turnRight(true);
-		        }
+	    		//if its a boundary
+	    		else {
+	    			if(justWentStraight) {
+	    				turnLeft(true);
+	    			}
+	    			else {
+	    				turnRight(true);
+	    			}
+	    		}
 		    }
-		    
 		}
 	}	
 	
@@ -367,25 +344,16 @@ public class Navigation {
 	/**
 	 * Displaces the robot one tile. Relies on black line detection.
 	 */
+	
+	
 	public void traverseATile() {
 	// cover most of the tile quickly, then slow down for light localizer
 		setSpeeds(FAST,FAST);
 		travelBy((TILELENGTH - 5),true);
 		liLocalizer.doLocalization();
-		//setSpeeds(SLOW,SLOW);
-		//liLocalizer.doLocalization();
-		// replace following line with lightlocalizer code
-		
-		
-		/*
-		ping lightsensors until one of the sensors finds a blackline, cut the motors and call 
-		localizer method.
-		After localizing, ping a short distance in front for a blue block,
-		if found,
-			foundBlock = true
-			call goGrabBlock
-		 */
+		System.out.println(odometer.getAng());
 	}
+	
 	
 	/**
 	 * Moves the robot to the detected blue block, robot will travel to inputs after it's grabbed the block
@@ -401,37 +369,6 @@ public class Navigation {
 		handle.capture();
 		travelTo(currentPos[0],currentPos[1]);
 		turnTo(90,true);
-		/*int angleOne = (int)angle;
-		int angleTwo;
-		int angleTurnTo;
-		
-		Sound.buzz();
-		Sound.buzz();
-		
-		setSpeeds(SLOW,SLOW);
-		if(justWentStraight) {
-			turnRight(false);
-		}
-		else {
-			turnLeft(false);
-		}
-		while(leftMotor.isMoving() || rightMotor.isMoving() ) {
-			if(objDetection.falseNeg() >= 50) {
-				setSpeeds(0,0);
-				Sound.buzz();
-				Sound.buzz();
-			}
-		}
-		
-		angleTwo = (int)odometer.getAng();
-		
-		angleTurnTo = (angleOne + angleTwo)/2;
-		
-		setSpeeds(SLOW,SLOW);
-		turnTo(angleTurnTo,false);
-		travelBy(usDist,true);
-		// grab block
-		travelTo(x,y);*/
 	}
 	
 	/**
@@ -456,11 +393,7 @@ public class Navigation {
 				numOfVerticalMoves = pathLengthY;
 				bestPath = pathLength;
 			}
-		}
-        LCD.drawString(Double.toString(closestDropZonePtX), 0, 1);
-        LCD.drawString(Double.toString(closestDropZonePtY), 0, 2);
-        LCD.drawString(Double.toString(numOfHorizontalMoves), 0, 3);
-        LCD.drawString(Double.toString(numOfVerticalMoves), 0, 4);       
+		}       
 	}
 	
 	/**
@@ -511,37 +444,74 @@ public class Navigation {
 				getShortestPathToDropZone();
 				
 			}
-
 		}
-		LCD.drawString(Double.toString(odometer.getAng()), 0, 5);
-		// bad code, replace later
+
+/*
 		if(closestDropZonePtX == dropzoneX[0] && closestDropZonePtY == dropzoneY[0]) {
-			Sound.beepSequence();
-			rotateBy(45,true);
-			//turnTo(45,false);
-		
+			if(getRobotDirection().equals("north")) {
+				rotateBy(45,true);
+			}
+			else {
+				rotateBy(-45,true);
+			}
 		}
 		
 		else if(closestDropZonePtX == dropzoneX[1] && closestDropZonePtY == dropzoneY[1]) {
+			if(getRobotDirection().equals("north"))	{
+				rotateBy(-45,true);
+			}
+			else {
+				rotateBy(45,true);				
+			}
+		}
+		
+		else if(closestDropZonePtX == dropzoneX[2] && closestDropZonePtY == dropzoneY[2]) {
+			if(getRobotDirection().equals("east"))	{
+				rotateBy(45,true);
+			}
+			else {
+				rotateBy(-45,true);				
+			}
+		}
+		
+		else {
+			if(getRobotDirection().equals("west"))	{
+				rotateBy(-45,true);
+			}
+			else {
+				rotateBy(45,true);		
+			}
+		}		
+*/		
+		
+		// prints are for debugging purposes		
+		System.out.println(getRobotDirection());
+		if(closestDropZonePtX == dropzoneX[0] && closestDropZonePtY == dropzoneY[0]) {
+			System.out.println(",45");
+			turnTo(45,false);
+			System.out.println(odometer.getAng());
+		}
+		
+		else if(closestDropZonePtX == dropzoneX[1] && closestDropZonePtY == dropzoneY[1]) {
+			System.out.println(",135");
 			turnTo(135, false);
 		}
 		else if(closestDropZonePtX == dropzoneX[2] && closestDropZonePtY == dropzoneY[2]) {
+			System.out.println(",315");
 			turnTo(315, false);
 		}
 		else {
+			System.out.println(",225");
 			turnTo(225, false);
 		}
 		
+		handle.lift();		
 		setSpeeds(SLOW,SLOW);
-		handle.lift();
-		travelBy(7, true);
+		travelBy(5,true);
 		handle.lower();
-		//rotateBy(45, true);
-		travelBy(-14,true);
-		handle.lift();
-		travelBy(7,true);
-		rotateBy(135,true);
-		handle.lower();
+		travelBy(-10,true);
+		setSpeeds(FAST,FAST);
+		rotateBy(45, true);
 		foundBlock= false;
 	}
 	
@@ -610,8 +580,6 @@ public class Navigation {
 				traverseATile();
 			}
 		}
-
-		
 	}
 	
 	/**

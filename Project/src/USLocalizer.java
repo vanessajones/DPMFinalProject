@@ -73,7 +73,7 @@ public class USLocalizer {
 		odo.setPosition(new double [] {0.0, 0.0, odo.getAng() + ORI_ANGLE}, new boolean [] {true, true, true});	
 	
 
-		LCD.drawString(Double.toString(ORI_ANGLE+odo.getAng()),0,6);
+//		LCD.drawString(Double.toString(ORI_ANGLE+odo.getAng()),0,6);
 		// orient at angle 90
 	
 		

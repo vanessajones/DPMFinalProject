@@ -12,7 +12,7 @@ public class ObjectDetection extends Exception {
 	private UltrasonicSensor us1;
 	private UltrasonicSensor us2;
 	
-	private final int SAMPLES = 5;
+	private final int SAMPLES = 10;
 	private final int FALSE_NEGATIVE = 20;
 	private final int BLOCK_DISTANCE = 45;
 	
