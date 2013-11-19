@@ -15,11 +15,11 @@ import lejos.nxt.comm.*;
  * @version  1.0 November 2 2013
  */
 public class Main {
-		
-		private static NXTRegulatedMotor leftMotor = Motor.A;
-		private static NXTRegulatedMotor rightMotor = Motor.B;
-		private static NXTRegulatedMotor lifting = Motor.C;
-		
+  
+  private static NXTRegulatedMotor leftMotor = Motor.A;
+  private static NXTRegulatedMotor rightMotor = Motor.B;
+  private static NXTRegulatedMotor lifting = Motor.C;
+  
         // code for testing the object detection
         public static void main(String[] args) {
                 
@@ -35,25 +35,42 @@ public class Main {
                LightLocalizer ls = new LightLocalizer(cs1,cs2, leftMotor, rightMotor, odo);
                HandleBlock handle = new HandleBlock(lifting);
                Navigation navi = new Navigation(odo, objdet, ls, handle);
-/*               
+             
                BluetoothConnection conn = new BluetoothConnection();
                Transmission t = conn.getTransmission();
                if (t == null) {
-       				LCD.drawString("Failed to read transmission", 0, 5);
-       			} else {
-  */     		
-       				us.doLocalization();
-       				navi.turnTo(0,false);
-       				ls.doLocalization();
-       				navi.turnTo(90,false);
-       				ls.doLocalization();
-          
-     //          while(true) {
-            	   navi.goFindBlock();
-            	   navi.bringToDropZone();
-            	   while(true);
-      //         }    
-       	//	}
+                 LCD.drawString("Failed to read transmission", 0, 5);
+               } else {
+                  StartCorner corner = t.startingCorner;
+                  PlayerRole role = t.role;
+                  // green zone is defined by these (bottom-left and top-right) corners:
+                  int[] greenZone = t.greenZone;
+   
+                  // red zone is defined by these (bottom-left and top-right) corners:
+                  int[] redZone = t.redZone;
+   
+                  // print out the transmission information to the LCD
+                  conn.printTransmission();
+                 
+                 
+                 /** Ultrasonic Sensor Localization **/
+                 /** Update the odometry, relative to the starting corner **/
+                 us.doLocalization(t.getId());
+                 LCD.refresh;
+                 LCD.drawString(Double.toString(odo.getX()),0,1);
+                 LCD.drawString(Double.toString(odo.getY(),0,2);
+                 LCD.drawString(Double.toString(odo.getAng(),0,3);
+                 /** Light Sensor localization **/
+                 navi.turnTo(0,false);
+                 ls.doLocalization();
+                 navi.turnTo(90,false);
+                 ls.doLocalization();
+            
+                 /** Go Find Blocks **/
+                while(true) {
+                navi.goFindBlock();
+                navi.bringToDropZone();
+  
 
        }
 }
