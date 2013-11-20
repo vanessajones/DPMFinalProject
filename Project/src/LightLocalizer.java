@@ -156,23 +156,23 @@ public class LightLocalizer {
         	// if the robot is going along the y-direction, update the y-direction
         	// also, update the angle
         	if ((odo.getAng()>90-angleThreshold && odo.getAng()<90+angleThreshold)){
-        		line = (int)((y + 5) / 30); 
+        		line = (int)((y + 15) / 30); 
         		position = line*30;
         		odo.setPosition(new double [] {0.0, position , 90}, new boolean [] {false, true, true});	
         	}
         	else if (odo.getAng()>270-angleThreshold && odo.getAng()<270+angleThreshold){
-        		line = (int)((y + 5) / 30); 
+        		line = (int)((y + 15) / 30); 
         		position = line*30;
         		odo.setPosition(new double [] {0.0, position , 270}, new boolean [] {false, true, true});	
         	}
         	// also, update the angle
         	else if (odo.getAng()>180-angleThreshold && odo.getAng()<180+angleThreshold) {
-        		line = (int)((x + 5) / 30); 
+        		line = (int)((x + 15) / 30); 
         		position = line*30;
         		odo.setPosition(new double [] {position, 0.0 , 180}, new boolean [] {true, false, true});	
         	}
         	else {
-        		line = (int)((x + 5) / 30); 
+        		line = (int)((x + 15) / 30); 
         		position = line*30;
         		odo.setPosition(new double [] {position, 0.0 , 0}, new boolean [] {true, false, true});	
         	}

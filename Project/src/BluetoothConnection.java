@@ -32,7 +32,7 @@ public class BluetoothConnection {
 	 */
 	public BluetoothConnection() {
 		LCD.clear();
-		LCD.drawString("Starting BT connection", 0, 0);
+		//LCD.drawString("Starting BT connection", 0, 0);
 		
 		NXTConnection conn = Bluetooth.waitForConnection();
 		DataInputStream dis = conn.openDataInputStream();

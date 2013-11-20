@@ -10,12 +10,16 @@ public class USLocalizer {
 
  private Odometer odo;
  private UltrasonicSensor us;
+ private Navigation navi;
+ private LightLocalizer ls;
  
  public double angleA, angleB;
  private int WALL_DIST = 40;
  private int NOISE_MARGIN = 2;
  private double ORI_ANGLE;
  private boolean LOCALIZING;
+ 
+ 
 
  public static int ROTATION_SPEED = 150;
  public static final double LEFT_RADIUS = 2.15;
@@ -27,9 +31,11 @@ public class USLocalizer {
   * @param odo imports the Odometer
   * @param us imports one UltrasonicSensor
   */
- public USLocalizer(Odometer odo, UltrasonicSensor us) {
+ public USLocalizer(Odometer odo, UltrasonicSensor us, Navigation navi, LightLocalizer ls) {
   this.odo = odo;
   this.us = us;
+  this.navi = navi;
+  this.ls = ls;
   Motor.A.setSpeed(ROTATION_SPEED);
   Motor.B.setSpeed(ROTATION_SPEED);
   
@@ -68,9 +74,15 @@ public class USLocalizer {
   else {
    ORI_ANGLE = 45 - (angleA + angleB)/2;
   }
-
+  
+  if(corner == 1) {
   // update the odometer position 
-  odo.setPosition(new double [] {0.0, 0.0, odo.getAng() + ORI_ANGLE}, new boolean [] {true, true, true}); 
+    odo.setPosition(new double [] {0.0, 0.0, odo.getAng() + ORI_ANGLE}, new boolean [] {true, true, true}); 
+    navi.turnTo(0,false);
+    ls.doLocalization();
+    navi.turnTo(90,false);
+    ls.doLocalization();
+  }
  
 
 //  LCD.drawString(Double.toString(ORI_ANGLE+odo.getAng()),0,6);
@@ -80,15 +92,27 @@ public class USLocalizer {
   // update the odometer's position according to the starting position
   
   if (corner == 2){
-   odo.setPosition(new double [] {304.8, 0, odo.getAng()+270}, new boolean [] {true, false, true});
+   odo.setPosition(new double [] {180, 0, odo.getAng() + ORI_ANGLE+90}, new boolean [] {true, false, true});
+   navi.turnTo(90,false);
+   ls.doLocalization();
+   navi.turnTo(180,false);
+   ls.doLocalization();
   }
   
   else if (corner == 3){
-   odo.setPosition(new double [] {304.8, 304.8, odo.getAng()+180}, new boolean [] {true, true, true});
+   odo.setPosition(new double [] {210, 210, odo.getAng() + ORI_ANGLE + 180}, new boolean [] {true, true, true});
+   navi.turnTo(180,false);
+   ls.doLocalization();
+   navi.turnTo(270,false);
+   ls.doLocalization();
    }
   
   else if (corner == 4){
-   odo.setPosition(new double [] {0, 304.8, odo.getAng()+90}, new boolean [] {false, true, true});
+   odo.setPosition(new double [] {0, 210, odo.getAng() + ORI_ANGLE + 270}, new boolean [] {false, true, true});
+   navi.turnTo(270,false);
+   ls.doLocalization();
+   navi.turnTo(0,false);
+   ls.doLocalization();
   }
   LOCALIZING = false;
  }

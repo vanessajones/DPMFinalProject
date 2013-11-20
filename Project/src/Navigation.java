@@ -11,6 +11,7 @@ import lejos.nxt.NXTRegulatedMotor;
 import lejos.nxt.Sound;
 import lejos.nxt.UltrasonicSensor;
 import lejos.nxt.comm.Bluetooth;
+import lejos.nxt.comm.RConsole;
 
 import java.lang.Math;
 
@@ -22,6 +23,7 @@ import java.lang.Math;
  */
 
 public class Navigation {
+	
 	final static int VERY_FAST = 250, FAST = 200, SLOW = 140, ACCELERATION = 4000;
 	final static double DEG_ERR = 3.0, CM_ERR = 1.0;
 	
@@ -45,11 +47,11 @@ public class Navigation {
 	private final int rightWallBound;
 	private final int topWallBound;
 	private final int bottomWallBound;
-	private int[] restrictedAreaX;
-	private int[] restrictedAreaY;
+	private int[] restrictedAreaX = {30};
+	private int[] restrictedAreaY = {30};
 	
-	private int[] dropzoneX = {120,150,120,150};
-	private int[] dropzoneY = {120,120,150,150};
+	private int[] dropzoneX = {60,90,60,90};
+	private int[] dropzoneY = {60,60,90,90};
 	
 	private int closestDropZonePtX;
 	private int closestDropZonePtY;
@@ -69,7 +71,7 @@ public class Navigation {
 	 * @param od imports ObjectDetection
 	 */
 	
-	public Navigation(Odometer odo, ObjectDetection od, LightLocalizer ls, HandleBlock hb) {
+	public Navigation(Odometer odo, ObjectDetection od, LightLocalizer ls, HandleBlock hb, int role, int[] greenZone, int[] redZone) {
 		this.odometer = odo;
 //		this.bt = bt;
 		this.liLocalizer = ls;
@@ -108,11 +110,38 @@ public class Navigation {
 		role = bt.getRole();
 		startingLocation = bt.getStartingLocation();
 		restrictedAreaX = bt.getrestrictedAreaX;
-		restrictedAreaY = bt.getrestrictedAreaY;
+find		restrictedAreaY = bt.getrestrictedAreaY;
 		dropzoneX = bt.getdropzone;
 		dropzoneY = bt.getdropzone;
 */
 	}
+	
+	/* A method that interprets bluetooth values into values good for navigation
+	 * 
+	 * public void interpretBluetooth(int[] greenZone, int[] redZone, String role) {
+	 * 		if(role.equals("builder")) {
+	 * 			this.dropzoneX = new int[4];
+	 * 			this.dropzoneY = new int[4];
+	 * 			
+	 * 			dropzoneX[0] = greenZone[0]*30;
+	 * 			dropzoneY[0] = greenZone[1]*30;
+	 * 			dropzoneX[1] = (greenZone[0] + 1)*30;
+	 * 			dropzoneY[1] = greenZone[1]*30;
+	 *			dropzoneX[2] = greenZone[0]*30;
+	 * 			dropzoneY[2] = (greenZone[1] + 1)*30;
+	 * 			dropzoneX[3] = (greenZone[0] + 1)*30;
+	 * 			dropzoneY[3] = (greenZone[1] + 1)*30;
+	 * 
+	 * 			int numOfRestrictedPts = ((redZone[2]-redZone[0]) + (redZone[3]-redZone[1]))*2
+	 * 			this.restrictedAreaX = new int[numOfRestrictedPts];
+	 * 			this.restrictedAreaY = new int[numOfRestrictedPts];
+	 * 
+	 * 		}
+	 * 
+	 * 		else if(role.equals("garbage collector")) {
+	 * 			
+	 */
+	
 	
 	
 	
@@ -181,13 +210,15 @@ public class Navigation {
 						goGrabBlock(coords);
 						leftMotor.stop();
 						rightMotor.stop();
+						
 					} catch (Exception e) {
 						// no blue block found, keep going
 					}
 				}
-				pickSafeRoute();				
-				traverseATile();
-
+				if(!foundBlock) {
+					pickSafeRoute();				
+					traverseATile();
+				}
 			}
 			
 			else {
@@ -201,13 +232,15 @@ public class Navigation {
 						goGrabBlock(coords);
 						leftMotor.stop();
 						rightMotor.stop();
+						
 					} catch (Exception e) {
 						// no blue block found, keep going
 					}
 				}
-				pickSafeRoute();
-				traverseATile();	
-
+				if(!foundBlock) {
+					pickSafeRoute();				
+					traverseATile();
+				}
 			}
 		}
 		
@@ -215,7 +248,8 @@ public class Navigation {
 	
 	public boolean scanAheadForObstacle() {
 		double originalAngle = odometer.getAng();
-		
+		setSpeeds(FAST,FAST);
+
 		rotateBy(15,false);
 		while(leftMotor.isMoving() || rightMotor.isMoving()) {
 			if(objDetection.isObstacle()) {
@@ -351,7 +385,6 @@ public class Navigation {
 		setSpeeds(FAST,FAST);
 		travelBy((TILELENGTH - 5),true);
 		liLocalizer.doLocalization();
-		System.out.println(odometer.getAng());
 	}
 	
 	
@@ -366,9 +399,15 @@ public class Navigation {
 	//	while (objDetection.getFilteredData()!=5){
 			travelTo(coords[0],coords[1]);
 	//	}
-		handle.capture();
+
 		travelTo(currentPos[0],currentPos[1]);
-		turnTo(90,true);
+		turnTo(90,false);
+		
+		rotateBy(20,true);
+		rotateBy(-40,true);
+		rotateBy(40,true);
+		rotateBy(-20, true);
+		handle.capture();
 	}
 	
 	/**
@@ -402,11 +441,20 @@ public class Navigation {
 	// INCOMPLETE, requires behavior for bad path.
 	public void bringToDropZone() {
 		int order;
+		int xPos = 0, yPos = 0, ang = 0;
 		Boolean isSafe;
 		getShortestPathToDropZone();
 		
 		while (numOfVerticalMoves != 0 || numOfHorizontalMoves != 0) {
 			isSafe = true;
+			
+			if((numOfVerticalMoves == 1 && numOfHorizontalMoves == 0) || (numOfVerticalMoves == 0 && numOfHorizontalMoves == 1)) {
+				// where the robot will go after its placed the block at drop zone, these coordinates are convenient because
+				// the robot's already traveled through here, thus we know there's no obstacles.
+				xPos = (int)odometer.getX();
+				yPos = (int)odometer.getY();
+				ang = (int)((odometer.getAng() + 180) % 360);
+			}
 			
 			if(Math.abs(numOfVerticalMoves) >= Math.abs(numOfHorizontalMoves)) {
 				if(numOfVerticalMoves > 0) {
@@ -436,7 +484,13 @@ public class Navigation {
 			}
 			if(isSafe) {
 				traverseATile();
-				updatePath();
+				getShortestPathToDropZone();
+			//	updatePath();
+				LCD.drawString(Double.toString(odometer.getX()),0,4);
+				LCD.drawString(Double.toString(odometer.getY()),0,5);
+				LCD.drawString(Double.toString(closestDropZonePtX),0,6);
+				LCD.drawString(Double.toString(closestDropZonePtY),0,7);
+				
 			}
 			// robot moves past obstacle and updates shortest path
 			else {
@@ -483,35 +537,30 @@ public class Navigation {
 			}
 		}		
 */		
-		
-		// prints are for debugging purposes		
-		System.out.println(getRobotDirection());
+			
 		if(closestDropZonePtX == dropzoneX[0] && closestDropZonePtY == dropzoneY[0]) {
-			System.out.println(",45");
-			turnTo(45,false);
-			System.out.println(odometer.getAng());
+			turnTo(45,true);
 		}
 		
 		else if(closestDropZonePtX == dropzoneX[1] && closestDropZonePtY == dropzoneY[1]) {
-			System.out.println(",135");
-			turnTo(135, false);
+			turnTo(135, true);
 		}
 		else if(closestDropZonePtX == dropzoneX[2] && closestDropZonePtY == dropzoneY[2]) {
-			System.out.println(",315");
-			turnTo(315, false);
+			turnTo(315, true);
 		}
 		else {
-			System.out.println(",225");
-			turnTo(225, false);
+			turnTo(225, true);
 		}
 		
+		setSpeeds(0,0);
 		handle.lift();		
 		setSpeeds(SLOW,SLOW);
-		travelBy(5,true);
+		travelBy(7,true);
 		handle.lower();
-		travelBy(-10,true);
+		travelBy(-22,true);
 		setSpeeds(FAST,FAST);
-		rotateBy(45, true);
+		travelTo(xPos,yPos);
+		turnTo(ang,true);
 		foundBlock= false;
 	}
 	
@@ -694,14 +743,14 @@ public class Navigation {
 			return 1;
 		}
 		
-		/*
-		for(int i = 0; i < restrictedAreaX.length; i++) {
+		
+	/*	for(int i = 0; i < restrictedAreaX.length; i++) {
 			if(restrictedAreaX[i] == destX && restrictedAreaY[i] == destY) {
 				return 2;
 			}
 		}
-		*/
-				
+		
+	*/			
 		return 0;
 	}
 	
