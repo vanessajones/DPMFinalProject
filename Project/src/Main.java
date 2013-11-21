@@ -1,13 +1,10 @@
-import lejos.nxt.Button;
+
 import lejos.nxt.ColorSensor;
 import lejos.nxt.Motor;
-import lejos.nxt.Sound;
 import lejos.nxt.NXTRegulatedMotor;
 import lejos.nxt.SensorPort;
 import lejos.nxt.UltrasonicSensor;
 import lejos.nxt.LCD;
-import lejos.nxt.comm.*;
-import lejos.nxt.comm.RConsole;
 
 
 /** Main class to run the code 
@@ -50,8 +47,8 @@ public class Main {
                   int[] redZone = t.redZone;
    
                   // print out the transmission information to the LCD
-                //  conn.printTransmission();
-               
+          //        conn.printTransmission();
+              
                   Navigation navi = new Navigation(odo, objdet, ls, handle, t.role.getId(), greenZone, redZone);
                   USLocalizer us = new USLocalizer(odo, us1, navi, ls);
                   
@@ -59,19 +56,15 @@ public class Main {
                   /** Update the odometry, relative to the starting corner **/
            
                  us.doLocalization(t.startingCorner.getId());
-                 LCD.refresh();
-                 LCD.drawString(Double.toString(odo.getX()),0,1);
-                 LCD.drawString(Double.toString(odo.getY()),0,2);
-                 LCD.drawString(Double.toString(odo.getAng()),0,3);
+             
                  /** Light Sensor localization **/
 
                  /** Go Find Blocks **/
+                  
                 while(true) {
                 	navi.goFindBlock();
                 	navi.bringToDropZone();
-                 
                 }
-
-               }
+              }
         }
      }

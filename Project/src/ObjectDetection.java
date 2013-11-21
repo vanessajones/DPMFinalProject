@@ -14,7 +14,8 @@ public class ObjectDetection extends Exception {
 	
 	private final int SAMPLES = 10;
 	private final int FALSE_NEGATIVE = 20;
-	private final int BLOCK_DISTANCE = 45;
+	private final int BLOCK_DISTANCE = 24;
+	private final int OBSTACLE_DISTANCE = 45;
 	
 	private int filterControl = 0;
 	
@@ -102,7 +103,7 @@ public class ObjectDetection extends Exception {
 		
 		distance = getFilteredData(us1);
 		
-		if(distance < BLOCK_DISTANCE) {
+		if(distance < OBSTACLE_DISTANCE) {
 			Sound.buzz();
 			return true;
 		}
