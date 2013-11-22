@@ -92,7 +92,7 @@ public class USLocalizer {
   // update the odometer's position according to the starting position
   
   if (corner == 2){
-   odo.setPosition(new double [] {180, 0, odo.getAng() + ORI_ANGLE+90}, new boolean [] {true, false, true});
+   odo.setPosition(new double [] {300, 0, odo.getAng() + ORI_ANGLE+90}, new boolean [] {true, false, true});
    navi.turnTo(90,false,ROTATION_SPEED);
    ls.doLocalization();
    navi.turnTo(180,false,ROTATION_SPEED);
@@ -100,7 +100,7 @@ public class USLocalizer {
   }
   
   else if (corner == 3){
-   odo.setPosition(new double [] {210, 210, odo.getAng() + ORI_ANGLE + 180}, new boolean [] {true, true, true});
+   odo.setPosition(new double [] {330, 330, odo.getAng() + ORI_ANGLE + 180}, new boolean [] {true, true, true});
    navi.turnTo(180,false,ROTATION_SPEED);
    ls.doLocalization();
    navi.turnTo(270,false,ROTATION_SPEED);
@@ -108,7 +108,7 @@ public class USLocalizer {
    }
   
   else if (corner == 4){
-   odo.setPosition(new double [] {0, 210, odo.getAng() + ORI_ANGLE + 270}, new boolean [] {false, true, true});
+   odo.setPosition(new double [] {0, 330, odo.getAng() + ORI_ANGLE + 270}, new boolean [] {false, true, true});
    navi.turnTo(270,false,ROTATION_SPEED);
    ls.doLocalization();
    navi.turnTo(0,false,ROTATION_SPEED);

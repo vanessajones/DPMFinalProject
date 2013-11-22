@@ -80,8 +80,8 @@ public class Navigation {
 		this.rightMotor.setAcceleration(ACCELERATION);
 		
 		leftWallBound = -25;
-		rightWallBound = 205;
-		topWallBound = 205;
+		rightWallBound = 325;
+		topWallBound = 325;
 		bottomWallBound = -25;
 		
 		interpretBluetooth(greenZone, redZone, role);
