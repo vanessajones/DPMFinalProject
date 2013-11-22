@@ -341,10 +341,8 @@ public class Navigation {
 		getNextLineIntersection();
 	    order = isBoundary(destX,destY);
 	    
-	    if(order == 0) {
-	    	if(scanAheadForObstacle()) {
-	    		justWentStraight = !justWentStraight;
-	    	}
+	    if(order == 0 && scanAheadForObstacle()) {
+	    	justWentStraight = !justWentStraight;
 	    }
 		
 	    else {
@@ -445,9 +443,6 @@ public class Navigation {
 		setSpeeds(VERY_FAST,VERY_FAST);
 		travelBy((TILELENGTH - 5),true);
 		liLocalizer.doLocalization();
-		LCD.drawString(Double.toString(odometer.getX()), 0, 4);
-		LCD.drawString(Double.toString(odometer.getY()), 0, 5);
-		LCD.drawString(Double.toString(odometer.getAng()), 0, 6);
 	}
 	
 	
@@ -456,11 +451,12 @@ public class Navigation {
 	 */
 	public void goGrabBlock(double[] coords) {
 		double[] currentPos = new double[] {odometer.getX(),odometer.getY(),odometer.getAng()};
+		setSpeeds(FAST,FAST);
 		//LCD.drawInt((int)coords[0]*100, 0, 0);
 		//LCD.drawInt((int)coords[1]*100, 0, 1);
-//		while (objDetection.getFilteredData()>5 && objDetection.getFilteredData()!=255 ){
+		while (objDetection.getFilteredData() > 5 && (leftMotor.isMoving() || rightMotor.isMoving())){
 			travelTo(coords[0],coords[1]);
-//		}
+		}
 		setSpeeds(FAST,FAST);
 		travelTo(currentPos[0],currentPos[1]);
 		setSpeeds(FAST,FAST);
@@ -468,6 +464,7 @@ public class Navigation {
 		rotateBy(-40,true);
 		rotateBy(40,true);
 		rotateBy(-20, true);
+		travelBy(-2,true);
 		handle.capture();
 	}
 	
@@ -537,14 +534,6 @@ public class Navigation {
 				}
 			}
 			
-			if((Math.abs(numOfVerticalMoves) == 1 && numOfHorizontalMoves == 0) || (numOfVerticalMoves == 0 && Math.abs(numOfHorizontalMoves) == 1)) {
-				// where the robot will go after its placed the block at drop zone, these coordinates are convenient because
-				// the robot's already traveled through here, thus we know there's no obstacles.
-				xPos = (int)odometer.getX();
-				yPos = (int)odometer.getY();
-				ang = (int)((odometer.getAng() + 180) % 360);
-			}
-			
 			// call obstacle detection, if object in way, change safe to false
 			getNextLineIntersection();
 			order = isBoundary(destX,destY);
@@ -556,14 +545,21 @@ public class Navigation {
 			}
 			if(isSafe) {
 				if((Math.abs(numOfVerticalMoves) == 1 && numOfHorizontalMoves == 0) || (numOfVerticalMoves == 0 && Math.abs(numOfHorizontalMoves) == 1) || (numOfVerticalMoves == 0 && numOfHorizontalMoves == 0)) {
+					
+					// where the robot will go after its placed the block at drop zone, these coordinates are convenient because
+					// the robot's already traveled through here, thus we know there's no obstacles.
+
+					xPos = (int)odometer.getX();
+					yPos = (int)odometer.getY();
+					ang = (int)((odometer.getAng() + 180) % 360);
 					setSpeeds(0,0);
 					handle.lift();
+
 				}
 				setSpeeds(VERY_FAST,VERY_FAST);
 				traverseATile();
 				getShortestPathToDropZone();
-				
-			//	updatePath();				
+							
 			}
 			// robot moves past obstacle and updates shortest path
 			else {
@@ -583,11 +579,10 @@ public class Navigation {
 		else if(closestDropZonePtX == dropzoneX[2] && closestDropZonePtY == dropzoneY[2]) {
 			turnTo(315, true, SLOW);
 		}
-		else {
+		else if(closestDropZonePtX == dropzoneX[3] && closestDropZonePtY == dropzoneY[3]) {
 			turnTo(225, true, SLOW);
 		}
-		handle.lift();
-		setSpeeds(0,0);	
+
 		setSpeeds(SLOW,SLOW);
 		travelBy(9,true);
 		handle.lower();
@@ -597,25 +592,7 @@ public class Navigation {
 		turnTo(ang,true,VERY_FAST);
 		foundBlock= false;
 	}
-	
-	/**
-	 * Updates the number of grid displacements required to reach drop zone.
-	 */
-	public void updatePath() {
-		if(getRobotDirection().equals("east")) {
-			numOfHorizontalMoves--;
-		}
-		else if(getRobotDirection().equals("north")) {
-			numOfVerticalMoves--;
-		}	
-		else if(getRobotDirection().equals("west")) {
-			numOfHorizontalMoves++;
-		}			
-		else if(getRobotDirection().equals("south")) {
-			numOfVerticalMoves++;
-		}			
-	}
-	
+		
 	public void circumventObstacle() {
 		String heading = getRobotDirection();
 		int angle;

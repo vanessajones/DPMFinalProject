@@ -14,7 +14,7 @@ public class ObjectDetection extends Exception {
 	
 	private final int SAMPLES = 10;
 	private final int FALSE_NEGATIVE = 20;
-	private final int BLOCK_DISTANCE = 24;
+	private final int BLOCK_DISTANCE = 35;
 	private final int OBSTACLE_DISTANCE = 45;
 	
 	private int filterControl = 0;
