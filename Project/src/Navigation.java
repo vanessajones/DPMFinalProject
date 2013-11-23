@@ -40,6 +40,7 @@ public class Navigation {
 	
 	private boolean hasBlock = false;
 	private boolean foundBlock = false;
+	private int blockcount = 0;
 	private boolean justWentStraight = true;
 	
 	private final int leftWallBound;
@@ -465,8 +466,15 @@ public class Navigation {
 		rotateBy(40,true);
 		rotateBy(-20, true);
 		travelBy(-2,true);
-		handle.capture();
+		if(objDetection.getFilteredData()>10){
+			foundBlock=false;
+		}
+		else{
+			handle.capture();
+			blockcount++;
+		}
 	}
+	
 	
 	/**
 	 * Gives the shortest path to the drop zone. Doesn't take obstacles and restricted areas into account. 
@@ -548,11 +556,20 @@ public class Navigation {
 					
 					// where the robot will go after its placed the block at drop zone, these coordinates are convenient because
 					// the robot's already traveled through here, thus we know there's no obstacles.
-
+					/*
+					turnTo(45,true,FAST);
+					setSpeeds(FAST,FAST);
+					travelBy(-10,true);
+				    turnTo(0,true,FAST);
+				    liLocalizer.doLocalization();
+				    turnTo(90,true,FAST);
+				    liLocalizer.doLocalization();
+					*/
 					xPos = (int)odometer.getX();
 					yPos = (int)odometer.getY();
 					ang = (int)((odometer.getAng() + 180) % 360);
 					setSpeeds(0,0);
+					if(blockcount==2||blockcount==4)
 					handle.lift();
 
 				}
@@ -568,23 +585,68 @@ public class Navigation {
 				
 			}
 		}
-			
+		/*
+		turnTo(45,true,FAST);
+		setSpeeds(FAST,FAST);
+		travelBy(-10,true);
+	    turnTo(0,true,FAST);
+	    liLocalizer.doLocalization();
+	    turnTo(90,true,FAST);
+	    liLocalizer.doLocalization();
+	    */	
+	    
 		if(closestDropZonePtX == dropzoneX[0] && closestDropZonePtY == dropzoneY[0]) {
+			turnTo(45,true,FAST);
+			setSpeeds(FAST,FAST);
+			travelBy(-10,true);
+		    turnTo(0,true,FAST);
+		    liLocalizer.doLocalization();
+		    turnTo(90,true,FAST);
+		    liLocalizer.doLocalization();	
 			turnTo(45,true, SLOW);
 		}
 		
 		else if(closestDropZonePtX == dropzoneX[1] && closestDropZonePtY == dropzoneY[1]) {
+			turnTo(135,true,FAST);
+			setSpeeds(FAST,FAST);
+			travelBy(-10,true);
+		    turnTo(180,true,FAST);
+		    liLocalizer.doLocalization();
+		    turnTo(90,true,FAST);
+		    liLocalizer.doLocalization();	
 			turnTo(135, true, SLOW);
 		}
 		else if(closestDropZonePtX == dropzoneX[2] && closestDropZonePtY == dropzoneY[2]) {
+			turnTo(315,true,FAST);
+			setSpeeds(FAST,FAST);
+			travelBy(-10,true);
+		    turnTo(0,true,FAST);
+		    liLocalizer.doLocalization();
+		    turnTo(270,true,FAST);
+		    liLocalizer.doLocalization();	
 			turnTo(315, true, SLOW);
 		}
 		else if(closestDropZonePtX == dropzoneX[3] && closestDropZonePtY == dropzoneY[3]) {
+			turnTo(225,true,FAST);
+			setSpeeds(FAST,FAST);
+			travelBy(-10,true);
+		    turnTo(180,true,FAST);
+		    liLocalizer.doLocalization();
+		    turnTo(270,true,FAST);
+		    liLocalizer.doLocalization();	
 			turnTo(225, true, SLOW);
 		}
 
 		setSpeeds(SLOW,SLOW);
-		travelBy(9,true);
+		if(blockcount==1){
+			travelBy(9,true);
+		}
+		else if(blockcount==2){
+			travelBy(8,true);	
+		}
+		else{
+			setSpeeds(0,0);
+		}
 		handle.lower();
 		setSpeeds(VERY_FAST,VERY_FAST);
 		travelBy(-24,true);
