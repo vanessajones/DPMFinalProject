@@ -1,9 +1,3 @@
-/*Note: require light localizer method that will localize by crossing a gridline
- *      require object detection method that will return if there's an obstacle directly in front of robot; not sufficient
- *      to just ping ahead since robot is too wide to cover. Require method that will ping for blue block and then go to it
- *      if one is found.
- */
-
 
 import lejos.nxt.LCD;
 import lejos.nxt.Motor;
@@ -19,7 +13,7 @@ import java.lang.Math;
 /** Class that houses the commands related to navigation.
  * 
  * @author Vanessa Jones, Christopher Petryna, Simon Lei, Taylor Dotsikas, Muhammad Hannan and Caroline Wu
- * @version  1.0 November 2 2013
+ * @version  2.0 November 25 2013
  */
 
 public class Navigation {
@@ -89,7 +83,12 @@ public class Navigation {
   interpretBluetooth(greenZone, redZone, role);
  }
  
- // A method that interprets bluetooth values into values good for navigation
+ /**
+  *  A method that interprets bluetooth readings into values good for navigation.
+  * @param greenZone an array containing the bottom-left and top-right coordinates of the green zone
+  * @param redZone an array containing the bottom-left and top-right coordinates of the red zone
+  * @param role the robot's role
+  */
    
    public void interpretBluetooth(int[] greenZone, int[] redZone, int role) {
     int numOfRedPts = ((redZone[2]-redZone[0]) + (redZone[3]-redZone[1]))*2;
@@ -308,6 +307,10 @@ public class Navigation {
   
  }
  
+ /** Scans ahead for obstacle with ultrasonic sensor.
+  * 
+  * @return true if there's no obstacle, false if there is
+  */
  public boolean scanAheadForObstacle() {
   double originalAngle = odometer.getAng();
   setSpeeds(FAST,FAST);
@@ -439,7 +442,6 @@ public class Navigation {
   * Displaces the robot one tile. Relies on black line detection.
   */
  
- 
  public void traverseATile() {
  // cover most of the tile quickly, then slow down for light localizer
   setSpeeds(VERY_FAST,VERY_FAST);
@@ -470,17 +472,19 @@ public class Navigation {
   travelBy(-2,true);
   if(objDetection.getFilteredData()>10){
     foundBlock=false;
-    if (heading.equals("north"){
+    if (heading.equals("north")){
       turnTo(90,true,FAST);
     }
-    else if (heading.equals("west"){
+    else if (heading.equals("west")){
       turnTo(180,true,FAST);
     }
-   else if (heading.equals("east"){  
-     turnTo(0,true,FAST);
-     else {
+    else if (heading.equals("east")){  
+      turnTo(0,true,FAST);
+    }
+    else {
        turnTo(270,true,FAST);
-     }
+    }
+  }
   else{
    handle.capture();
    blockcount++;
@@ -666,7 +670,10 @@ public class Navigation {
   turnTo(ang,true,VERY_FAST);
   foundBlock= false;
  }
-  
+ 
+ /**
+  * Provides instructions for avoiding an obstacle while holding a blue block.
+  */
  public void circumventObstacle() {
   String heading = getRobotDirection();
   int angle;
@@ -795,6 +802,10 @@ public class Navigation {
   return 0;
  }
  
+ /**
+  * Tells robot to rotate 90 degrees clockwise from current heading.
+  * @param wait if true, the robot will wait until the turn is complete before performing another operation.
+  */
  public void turnRight(boolean wait) {
   setSpeeds(FAST,FAST);
   if(wait) {
@@ -805,6 +816,10 @@ public class Navigation {
   }
  }
  
+ /**
+  * Tells robot to rotate 90 degrees counterclockwise from current heading.
+  * @param wait if true, the robot will wait until the turn is complete before performing another operation.
+  */
  public void turnLeft(boolean wait) {
   setSpeeds(FAST,FAST);
   if(wait) {
