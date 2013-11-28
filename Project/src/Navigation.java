@@ -19,7 +19,7 @@ import java.lang.Math;
 public class Navigation {
  
   
- final static int VERY_FAST = 260, FAST = 200, SLOW = 140, ACCELERATION = 4000;
+ final static int VERY_FAST = 300, FAST = 240, SLOW = 180, ACCELERATION = 4000;
  final static double DEG_ERR = 3.0, CM_ERR = 1.0;
  
  private Odometer odometer;
@@ -33,7 +33,6 @@ public class Navigation {
  private final double TILELENGTH = 30;
  private final int ERRORMARGIN = 10;
  
- private boolean hasBlock = false;
  private boolean foundBlock = false;
  private int blockcount = 0;
  private boolean justWentStraight = true;
@@ -42,6 +41,7 @@ public class Navigation {
  private final int rightWallBound;
  private final int topWallBound;
  private final int bottomWallBound;
+ 
  private int[] restrictedAreaX;
  private int[] restrictedAreaY;
  
@@ -71,7 +71,6 @@ public class Navigation {
   this.leftMotor = Motor.A;
   this.rightMotor = Motor.B;
 
-  // set acceleration
   this.leftMotor.setAcceleration(ACCELERATION);
   this.rightMotor.setAcceleration(ACCELERATION);
   
@@ -93,6 +92,7 @@ public class Navigation {
    public void interpretBluetooth(int[] greenZone, int[] redZone, int role) {
     int numOfRedPts = ((redZone[2]-redZone[0]) + (redZone[3]-redZone[1]))*2;
     
+    // if robot's role is builder.
      if(role == 1) {
      this.dropzoneX = new int[4];
       this.dropzoneY = new int[4];
@@ -121,22 +121,23 @@ public class Navigation {
       int index = 4;
       
       for(int i = redZone[0]+1; i < redZone[2]; i++) {
-       restrictedAreaX[index] = redZone[i]*30;
+       restrictedAreaX[index] = i*30;
        restrictedAreaY[index] = redZone[1]*30;
-       restrictedAreaX[index+1] = redZone[i]*30;
+       restrictedAreaX[index+1] = i*30;
        restrictedAreaY[index+1] = redZone[3]*30;
        index = index + 2;
       }
       
       for(int j = redZone[1]+1; j < redZone[3]; j++) {
        restrictedAreaX[index] = redZone[0]*30;
-       restrictedAreaY[index] = redZone[j]*30;
+       restrictedAreaY[index] = j*30;
        restrictedAreaX[index+1] = redZone[2]*30;
-       restrictedAreaY[index+1] = redZone[j]*30;
+       restrictedAreaY[index+1] = j*30;
        index = index + 2;       
       }
      }
    
+     // if robot's role is garbage collector
      else if(role == 2) {
       this.dropzoneX = new int[numOfRedPts];
       this.dropzoneY = new int[numOfRedPts];
@@ -153,18 +154,18 @@ public class Navigation {
       int index = 4;
       
       for(int i = redZone[0]+1; i < redZone[2]; i++) {
-       dropzoneX[index] = redZone[i]*30;
+       dropzoneX[index] = i*30;
        dropzoneY[index] = redZone[1]*30;
-       dropzoneX[index+1] = redZone[i]*30;
+       dropzoneX[index+1] = i*30;
        dropzoneY[index+1] = redZone[3]*30;
        index = index + 2;
       }
       
       for(int j = redZone[1]+1; j < redZone[3]; j++) {
        dropzoneX[index] = redZone[0]*30;
-       dropzoneY[index] = redZone[j]*30;
+       dropzoneY[index] = j*30;
        dropzoneX[index+1] = redZone[2]*30;
-       dropzoneY[index+1] = redZone[j]*30;
+       dropzoneY[index+1] = j*30;
        index = index + 2;       
       }
       
@@ -185,18 +186,18 @@ public class Navigation {
       index = 4;
       
       for(int i = greenZone[0]+1; i < greenZone[2]; i++) {
-       restrictedAreaX[index] = greenZone[i]*30;
+       restrictedAreaX[index] = i*30;
        restrictedAreaY[index] = greenZone[1]*30;
-       restrictedAreaX[index+1] = greenZone[i]*30;
+       restrictedAreaX[index+1] = i*30;
        restrictedAreaY[index+1] = greenZone[3]*30;
        index = index + 2;
       }
       
       for(int j = greenZone[1]+1; j < greenZone[3]; j++) {
        restrictedAreaX[index] = greenZone[0]*30;
-       restrictedAreaY[index] = greenZone[j]*30;
+       restrictedAreaY[index] = j*30;
        restrictedAreaX[index+1] = greenZone[2]*30;
-       restrictedAreaY[index+1] = greenZone[j]*30;
+       restrictedAreaY[index+1] = j*30;
        index = index + 2;       
       }
      }
@@ -260,10 +261,13 @@ public class Navigation {
  public void goFindBlock() {
   double[] coords = new double[3];
   while(!foundBlock) {
+   // condition justWentStraight is used to make the robot alternate between going forward and going right. 
+   // This makes it travel in a zigzag pattern.
    if(justWentStraight) {
     turnRight(false);
     
     while(leftMotor.isMoving() || rightMotor.isMoving()) {
+    // robot pings for a blue block as it's rotating.
      try {
       coords = objDetection.findObject();
       Sound.beep();
@@ -286,6 +290,7 @@ public class Navigation {
     turnLeft(false);
     
     while(leftMotor.isMoving() || rightMotor.isMoving()) {
+    // robot pings for a blue block as it's rotating.
      try {
       coords = objDetection.findObject();
       Sound.beep();
@@ -315,6 +320,7 @@ public class Navigation {
   double originalAngle = odometer.getAng();
   setSpeeds(FAST,FAST);
 
+  // rotation is necessary to give the sensor a wide enough scan vision to cover the front of the robot.
   rotateBy(18,false);
   while(leftMotor.isMoving() || rightMotor.isMoving()) {
    if(objDetection.isObstacle()) {
@@ -340,56 +346,57 @@ public class Navigation {
   */
 
  public void pickSafeRoute() {
-  boolean notSafe;
-  int order;
-  
-  getNextLineIntersection();
-     order = isBoundary(destX,destY);
+   boolean notSafe;
+   int order;
+   
+   // determines if next line intersection is a boundary or wall.  
+   getNextLineIntersection();
+   order = isBoundary(destX,destY);
      
-     if(order == 0 && scanAheadForObstacle()) {
-      justWentStraight = !justWentStraight;
-     }
+   if(order == 0 && scanAheadForObstacle()) {
+     justWentStraight = !justWentStraight;
+   }
   
-     else {
-      notSafe = true;
-      while(notSafe) {
+   else {
+     notSafe = true;
+     while(notSafe) {
        getNextLineIntersection();
        order = isBoundary(destX,destY);
       
        // if its not a boundary or wall
        if(order == 0) {
        
-        // check if obstacle in way
-        if(scanAheadForObstacle()) {
-         notSafe = false;
-        }
-        else { 
-         if(justWentStraight) {
-          turnLeft(true);
+         // check if obstacle in way
+         if(scanAheadForObstacle()) {
+           notSafe = false;
          }
-         else {
-          turnRight(true);
-         }        
-        }
+         else { 
+           if(justWentStraight) {
+             turnLeft(true);
+           }
+           else {
+             turnRight(true);
+           }        
+         }
        }
       
        // if its a wall
        else if(order == 1) {
-        rotateBy(180,true);
-        justWentStraight = false;
+         rotateBy(180,true);
+         justWentStraight = false;
        }
       
        //if its a boundary
        else {
-        if(justWentStraight) {
-         turnLeft(true);
-        }
-        else {
-         turnRight(true);
-        }
+         if(justWentStraight) {
+          turnLeft(true);
+         }
+         else {
+           turnRight(true);
+         }
        }
-      }
-  }
+     }
+   }
  } 
  
  /**
@@ -457,19 +464,19 @@ public class Navigation {
   double[] currentPos = new double[] {odometer.getX(),odometer.getY(),odometer.getAng()};
   String heading = getRobotDirection();
   setSpeeds(FAST,FAST);
-  //LCD.drawInt((int)coords[0]*100, 0, 0);
-  //LCD.drawInt((int)coords[1]*100, 0, 1);
   while (objDetection.getFilteredData() > 5 && (leftMotor.isMoving() || rightMotor.isMoving())){
    travelTo(coords[0],coords[1]);
   }
   setSpeeds(FAST,FAST);
   travelTo(currentPos[0],currentPos[1]);
   setSpeeds(FAST,FAST);
+  // handle the block so that it's approximately in the middle of the claw before picking it up.
   rotateBy(20,true);
   rotateBy(-40,true);
   rotateBy(40,true);
   rotateBy(-20, true);
   travelBy(-2,true);
+  // condition to double-check if the robot isn't mistaken that it has a block.
   if(objDetection.getFilteredData()>10){
     foundBlock=false;
     if (heading.equals("north")){
@@ -502,6 +509,7 @@ public class Navigation {
   int pathLength;
   int bestPath = PLACEHOLDER;
   
+  // loop through all drop zone points to find the closest one, also gives the shortest grid line path to said point.
   for(int i = 0; i < dropzoneX.length; i++) {
    if((dropzoneX[i] - odometer.getX()) >= 0) {
     pathLengthX = (int)((dropzoneX[i] - odometer.getX() + ERRORMARGIN) / TILELENGTH);
@@ -572,18 +580,10 @@ public class Navigation {
      
      // where the robot will go after its placed the block at drop zone, these coordinates are convenient because
      // the robot's already traveled through here, thus we know there's no obstacles.
-     /*
-     turnTo(45,true,FAST);
-     setSpeeds(FAST,FAST);
-     travelBy(-10,true);
-        turnTo(0,true,FAST);
-        liLocalizer.doLocalization();
-        turnTo(90,true,FAST);
-        liLocalizer.doLocalization();
-     */
      xPos = (int)odometer.getX();
      yPos = (int)odometer.getY();
      ang = (int)((odometer.getAng() + 180) % 360);
+     
      setSpeeds(0,0);
      if(blockcount==2||blockcount==4)
      handle.lift();
@@ -594,23 +594,15 @@ public class Navigation {
     getShortestPathToDropZone();
        
    }
-   // robot moves past obstacle and updates shortest path
+   // robot moves past obstacle and updates shortest path.
    else {
     circumventObstacle();
     getShortestPathToDropZone();
     
    }
   }
-  /*
-  turnTo(45,true,FAST);
-  setSpeeds(FAST,FAST);
-  travelBy(-10,true);
-     turnTo(0,true,FAST);
-     liLocalizer.doLocalization();
-     turnTo(90,true,FAST);
-     liLocalizer.doLocalization();
-     */ 
-     
+  
+  // localize before dropping the block in drop zone.
   if(closestDropZonePtX == dropzoneX[0] && closestDropZonePtY == dropzoneY[0]) {
    turnTo(45,true,FAST);
    setSpeeds(FAST,FAST);
@@ -711,7 +703,7 @@ public class Navigation {
    }
   }
   
-  // Circumvent code goes here.  
+  // logic for circumventing the obstacle  
   while(!safe) {
    turnTo(angle, false, VERY_FAST);
    traverseATile();
@@ -747,7 +739,6 @@ public class Navigation {
   * @param stop controls whether or not to stop the motors when the turn is completed.
   */
  public void turnTo(double angle, boolean stop, int speed) {
-  speed = speed;
   double error = angle - this.odometer.getAng();
 
   while (Math.abs(error) > DEG_ERR) {
