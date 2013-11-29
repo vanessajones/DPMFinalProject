@@ -1,14 +1,10 @@
-/** TEACHER WILL GIVE US THIS CLASS
+/* Bluetooth class
  * 
  * @author Sean Lawlor, Stepan Salenikovich, Francois OD
  * @date November 6, 2013
  * @class ECSE 211 - Design Principle and Methods
  */
-/*
-* @author Sean Lawlor, Stepan Salenikovich, Francois OD
-* @date November 6, 2013
-* @class ECSE 211 - Design Principle and Methods
-*/
+
 import lejos.nxt.Button;
 import lejos.nxt.LCD;
 import lejos.nxt.comm.*;
