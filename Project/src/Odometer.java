@@ -2,10 +2,10 @@ import lejos.util.Timer;
 import lejos.util.TimerListener;
 import lejos.nxt.NXTRegulatedMotor;
 
-/** Class that update's the robot's position
+/** Class that update's the robot's position on a field
  * 
  * @author Vanessa Jones, Christopher Petryna, Simon Lei, Taylor Dotsikas, Muhammad Hannan and Caroline Wu
- *@version 1.0 November 2 2013
+ *@version 3.0 November 28 2013
  */
 public class Odometer implements TimerListener {
 
