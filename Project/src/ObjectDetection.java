@@ -3,7 +3,7 @@ import lejos.nxt.*;
 /** Class that determines the identity of an unknown obstacle
  * 
  * @author Vanessa Jones, Christopher Petryna, Simon Lei, Taylor Dotsikas, Muhammad Hannan and Caroline Wu
- * @version  1.0 November 2 2013
+ * @version  3.0 November 28 2013
  */
 public class ObjectDetection extends Exception {
 	
@@ -21,7 +21,7 @@ public class ObjectDetection extends Exception {
 	
 	private Odometer odometer;
 	
-	/** Constructor method to import the two ultrasonic sensors
+	/** Constructor method to import the two ultrasonic sensors and odometer
 	 * 
 	 * @param us1 import the ultrasonic sensor located on the TOP of the robot
 	 * @param us2 import the ultrasonic sensor located at the BOTTOM of the robot
@@ -31,7 +31,6 @@ public class ObjectDetection extends Exception {
 		
 		this.us1 = us1;
 		this.us2 = us2;
-		
 		this.odometer = odo;
 		
 	}
@@ -51,7 +50,7 @@ public class ObjectDetection extends Exception {
 			// import x, y, and theta from odometer
 			coords = odometer.getPosition();
 			
-			// find x and y position using distance and angle
+			// find x and y position of the block using distance and angle
 			int distance = getFilteredData(us2);
 			coords[0] += (double) distance * Math.cos(Math.toRadians(coords[2]));
 			coords[1] += (double) distance * Math.sin(Math.toRadians(coords[2]));
@@ -75,16 +74,17 @@ public class ObjectDetection extends Exception {
 		int distanceUS2;
 		boolean falseAlarm = false;
 		
+		// get the readings from the bottom ultrasonis sensor
 		distanceUS2 = getFilteredData(us2);
 		
-		// if the bottom sensor detects something sample the top sensor a few times to see if it's a false alarm
+		// if the bottom sensor detects something, sample the top sensor a few times to see if it's a false alarm (filter)
 		if (distanceUS2 < BLOCK_DISTANCE) {
 			for(int i = 0; i < SAMPLES; i++) {
 				if(getFilteredData(us1) < BLOCK_DISTANCE) {
 					falseAlarm = true;
 				}
 			}
-			// if not and the bottom sensor can still detect the block then it must be real
+			// if not and the bottom sensor can still detect the block, then it must be real
 			if(!falseAlarm && (getFilteredData(us2) < BLOCK_DISTANCE)) {
 				return true;					
 			}
@@ -95,14 +95,16 @@ public class ObjectDetection extends Exception {
 	
 	/** Determines if there is an obstacle ahead
 	 * 
-	 * @return true if there is an obstacle, false if otherwise
+	 * @return true if there is an obstacle ahead, false if otherwise
 	 */
 	public boolean isObstacle() {
 		
 		int distance;
 		
+		// get the readings from the top ultrasonic sensor
 		distance = getFilteredData(us1);
 		
+		// if the top ultrasonic sensor sees an obstacle, return true
 		if(distance < OBSTACLE_DISTANCE) {
 			Sound.buzz();
 			return true;
@@ -131,6 +133,10 @@ public class ObjectDetection extends Exception {
 		return distance;
 	}
 	
+	/** Method to get filtered data from the bottom ultrasonic sensors
+	 * 
+	 * @return returns filtered distance read by the ultrasonic sensor
+	 */
 	public int getFilteredData(){
 		
 		int distance;
@@ -146,6 +152,10 @@ public class ObjectDetection extends Exception {
 		return distance;
 	}
 	
+	/** Method to get filtered data from the bottom ultrasonic sensors
+	 * 
+	 * @return returns filtered distance read by the ultrasonic sensor
+	 */
 	public int falseNeg() {
 		int distance;
 		int safeValue = 30;
