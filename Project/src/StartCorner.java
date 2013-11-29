@@ -19,6 +19,7 @@ public enum StartCorner {
 	
 	private int id, x, y;
 	private String name;
+	
 	private StartCorner(int id, int x, int y, String name) {
 		this.id = id;
 		this.x = x;
