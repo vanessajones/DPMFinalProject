@@ -60,6 +60,10 @@ public class Navigation {
   * @param odo imports Odometer 
   * @param ls imports LightLocalizer
   * @param od imports ObjectDetection
+  * @param hb imports HandleBlock
+  * @param role the robot's role (garbage collector or builder)
+  * @param greenZone an array containing the bottom-left and top-right coordinates of the green zone
+  * @param redZone an array containing the bottom-left and top-right coordinates of the red zone
   */
  
  public Navigation(Odometer odo, ObjectDetection od, LightLocalizer ls, HandleBlock hb, int role, int[] greenZone, int[] redZone) {
@@ -464,18 +468,22 @@ public class Navigation {
   double[] currentPos = new double[] {odometer.getX(),odometer.getY(),odometer.getAng()};
   String heading = getRobotDirection();
   setSpeeds(FAST,FAST);
+  // go get the block
   while (objDetection.getFilteredData() > 5 && (leftMotor.isMoving() || rightMotor.isMoving())){
    travelTo(coords[0],coords[1]);
   }
+  // travel back to the place where it originally detected the block
   setSpeeds(FAST,FAST);
   travelTo(currentPos[0],currentPos[1]);
   setSpeeds(FAST,FAST);
+  
   // handle the block so that it's approximately in the middle of the claw before picking it up.
   rotateBy(20,true);
   rotateBy(-40,true);
   rotateBy(40,true);
   rotateBy(-20, true);
   travelBy(-2,true);
+  
   // condition to double-check if the robot isn't mistaken that it has a block.
   if(objDetection.getFilteredData()>10){
     foundBlock=false;
@@ -492,6 +500,7 @@ public class Navigation {
        turnTo(270,true,FAST);
     }
   }
+  // if the robot has the block, capture it and increment the block count
   else{
    handle.capture();
    blockcount++;
@@ -575,6 +584,7 @@ public class Navigation {
    if(order != 0) {
     isSafe = false;
    }
+   // the robot travels to one tile away and changes its behavior according to the number of blocks it has already stacked
    if(isSafe) {
     if((Math.abs(numOfVerticalMoves) == 1 && numOfHorizontalMoves == 0) || (numOfVerticalMoves == 0 && Math.abs(numOfHorizontalMoves) == 1) || (numOfVerticalMoves == 0 && numOfHorizontalMoves == 0)) {
      
@@ -585,6 +595,7 @@ public class Navigation {
      ang = (int)((odometer.getAng() + 180) % 360);
      
      setSpeeds(0,0);
+     // if the block has already dropped off one or three blocks, the robot must lift the claw in order to stack over those
      if(blockcount==2||blockcount==4)
      handle.lift();
 
@@ -602,7 +613,7 @@ public class Navigation {
    }
   }
   
-  // localize before dropping the block in drop zone.
+  // localize with the light sensors before dropping the block in drop zone.
   if(closestDropZonePtX == dropzoneX[0] && closestDropZonePtY == dropzoneY[0]) {
    turnTo(45,true,FAST);
    setSpeeds(FAST,FAST);
@@ -646,18 +657,24 @@ public class Navigation {
   }
 
   setSpeeds(SLOW,SLOW);
+  // if the robot did not stack any blocks
   if(blockcount==1){
    travelBy(9,true);
   }
+  // for the second block, the robot does not advance as much to properly stack it
   else if(blockcount==2){
    travelBy(8,true); 
   }
+  // if the robot has already built a tower of two blocks, simply drop the block without advancing into the drop zone.
   else{
    setSpeeds(0,0);
   }
+  // release the block
   handle.lower();
   setSpeeds(VERY_FAST,VERY_FAST);
+  // back away from the tower
   travelBy(-24,true);
+  // travel to where the robot was one tile away from the drop zone
   travelTo(xPos,yPos);
   turnTo(ang,true,VERY_FAST);
   foundBlock= false;
@@ -834,13 +851,14 @@ public class Navigation {
    return 1;
   }
   
-  
+  // restricted area
   for(int i = 0; i < restrictedAreaX.length; i++) {
    if(restrictedAreaX[i] == destX && restrictedAreaY[i] == destY) {
     return 2;
    }
   }   
   
+  // drop zone, without a block
   if(!foundBlock) {
    for(int i = 0; i < dropzoneX.length; i++) {
     if(dropzoneX[i] == destX && dropzoneY[i] == destY) {

@@ -152,32 +152,5 @@ public class ObjectDetection extends Exception {
 		return distance;
 	}
 	
-	/** Method to get filtered data from the bottom ultrasonic sensors
-	 * 
-	 * @return returns filtered distance read by the ultrasonic sensor
-	 */
-	public int falseNeg() {
-		int distance;
-		int safeValue = 30;
-		
-		us2.ping();
-		
-		try { Thread.sleep(50); } catch (InterruptedException e) {}
-		
-		distance = us2.getDistance();	
-		
-		if(distance < 50) {
-			filterControl = 0;
-			return distance;
-		}
-		else if(distance >= 50 && filterControl < FALSE_NEGATIVE) {
-			return safeValue;
-		}
-		else {
-			return distance;
-		}
-		
-	}
-	
 	
 }

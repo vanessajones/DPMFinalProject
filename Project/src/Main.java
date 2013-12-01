@@ -6,7 +6,7 @@ import lejos.nxt.SensorPort;
 import lejos.nxt.UltrasonicSensor;
 import lejos.nxt.LCD;
 
-/** Main class to run the robot program
+/** Main class to run the robot's program
  * 
  * @author Vanessa Jones, Christopher Petryna, Simon Lei, Taylor Dotsikas, Muhammad Hannan and Caroline Wu
  * @version  3.0 November 28 2013

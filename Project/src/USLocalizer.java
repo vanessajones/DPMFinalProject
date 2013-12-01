@@ -1,6 +1,7 @@
 import lejos.nxt.*;
 
-/** This class performs localization with one Ultrasonic Sensor
+/** This class performs the initial localization.
+ *  It initially performs localization with an ultrasonic sensor and then performs the light localization using LightLocalizer
  * 
  * @author Vanessa Jones, Christopher Petryna, Simon Lei, Taylor Dotsikas, Muhammad Hannan and Caroline Wu
  * @version 3.0 November 28 2013
@@ -27,10 +28,10 @@ public class USLocalizer {
 
 	/**
 	 * Class constructor
-	 * @param odo imports the Odometer
+	 * @param odo imports Odometer
 	 * @param us imports top UltrasonicSensor
-	 * @param navi imports the Navigation for the turning
-	 * @param ls imports the lightlocalizer to perform afterwards
+	 * @param navi imports Navigation for the turning
+	 * @param ls imports LightLocalizer to perform afterwards
 	 */
 	public USLocalizer(Odometer odo, UltrasonicSensor us, Navigation navi, LightLocalizer ls) {
 		this.odo = odo;
@@ -38,7 +39,7 @@ public class USLocalizer {
 		this.navi = navi;
 		this.ls = ls;
 		
-		//
+		// set both motor speeds to rotation speeds
 		Motor.A.setSpeed(ROTATION_SPEED);
 		Motor.B.setSpeed(ROTATION_SPEED);
 
@@ -47,7 +48,7 @@ public class USLocalizer {
 	}
 
 	/** Method that makes the robot perform Falling Edge localization to correct its heading
-	 * and its position
+	 * and its position. Afterwards, makes the robot perform light localization. 
 	 * @param corner determines the robot's initial starting corner to correct the position
 	 */
 	public void doLocalization(int corner) {
@@ -83,7 +84,7 @@ public class USLocalizer {
 		/* The robot will correct its position according to the robot's starting corner. 
 		 * Afterwards, the robot will perform light localization.
 		 * The light localization with be performed twice, in each direction, as to be precise in both x and y directions
-		 * Once the light localization is finished, the robot is at the point (0,0).
+		 * Once the light localization is finished, the robot is perfectly aligned on the first line intersection.
 		 * This allows for the user to put the robot anywhere in the first tile.
 		 */
 		if(corner == 1) {

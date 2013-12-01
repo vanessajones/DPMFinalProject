@@ -6,16 +6,15 @@ import lejos.nxt.*;
  * @version  3.0 November 28 2013
  */
 public class HandleBlock {
-
-	private final int CAPTURE_DEGREES = -250; 
-	private final int LIFT_DEGREES = -450; 
-	private final int LOWER_DEGREES = 0;
-	private final int RELEASE_DEGREES = 20;
+	
+	private final int CAPTURE_DEGREES = -250; // amount of degrees to capture block
+	private final int LIFT_DEGREES = -450;  // amount of degrees to lift the block, after capturing
+	private final int LOWER_DEGREES = 0;	// amount of degrees to lower and release the block
 	private boolean manipulating; // boolean that determines if the block is currently being manipulated
-	private NXTRegulatedMotor liftingMotor;
+	private NXTRegulatedMotor liftingMotor; 
 
-	/***
-	 * Class contructor
+	/**
+	 * Class constructor
 	 * @param NXTRegulatedMotor imports the motor used for moving the mechanism (claw)
 	 */
 	public HandleBlock(NXTRegulatedMotor lifting){
